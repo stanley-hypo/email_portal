@@ -5,7 +5,6 @@ FROM node:18-alpine
 RUN apk update
 RUN apk add --no-cache libc6-compat
 RUN apk add --no-cache make gcc g++ python3
-RUN npm install --save-dev ts-node
 
 # 设置工作目录
 WORKDIR /app
