@@ -49,3 +49,4 @@ src/db/drizzle/*
 
 # smtp-config.json
 smtp-config.json
+yarn.lock
