@@ -21,9 +21,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error('Error during authentication:', error);
     return NextResponse.json(
-      { error: 'Invalid request' },
-      { status: 400 }
+      { error: 'Internal server error' },
+      { status: 500 }
     );
   }
 } 

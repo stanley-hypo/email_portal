@@ -12,7 +12,7 @@ function checkAuth(request: Request) {
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     if (!checkAuth(request)) {
@@ -23,7 +23,8 @@ export async function PUT(
     }
 
     const data = await request.json();
-    const updatedConfig = updateSmtpConfig(params.id, data);
+    const id = await params;
+    const updatedConfig = updateSmtpConfig(id.id, data);
     
     if (!updatedConfig) {
       return NextResponse.json(
@@ -34,6 +35,7 @@ export async function PUT(
 
     return NextResponse.json(updatedConfig);
   } catch (error) {
+    console.error('Error updating configuration:', error);
     return NextResponse.json(
       { error: 'Failed to update configuration' },
       { status: 500 }
@@ -43,7 +45,7 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     if (!checkAuth(request)) {
@@ -53,7 +55,8 @@ export async function DELETE(
       );
     }
 
-    const deleted = deleteSmtpConfig(params.id);
+    const id = await params;
+    const deleted = deleteSmtpConfig(id.id);
     if (!deleted) {
       return NextResponse.json(
         { error: 'Configuration not found' },

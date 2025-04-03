@@ -10,7 +10,7 @@
     "test": "jest --watch",
     "test:ci": "jest --ci",
     "typecheck": "tsc --noEmit",
-    "worker": "ts-node src/workers/start.ts"
+    "worker": "tsx src/workers/start.ts"
   },
   "dependencies": {
     "@mantine/core": "^7.17.3",

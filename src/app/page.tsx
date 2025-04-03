@@ -1,36 +1,33 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import PasswordDialog from '@/components/PasswordDialog';
 import { SmtpConfig } from '@/types/smtp';
 import {
-  Container,
-  Title,
-  Paper,
-  TextInput,
-  NumberInput,
-  PasswordInput,
-  Checkbox,
-  Button,
-  Stack,
-  Group,
-  Card,
-  Text,
-  Grid,
-  Badge,
   ActionIcon,
-  useMantineTheme,
   Alert,
-  Modal,
+  Badge,
+  Button,
+  Card,
+  Checkbox,
+  Container,
+  Grid,
+  Group,
   Loader,
-  TagsInput,
-  Tooltip,
+  Modal,
+  NumberInput,
+  Paper,
+  PasswordInput,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+  Tooltip
 } from '@mantine/core';
-import { IconEdit, IconPlus, IconX, IconLock, IconTrash, IconKey, IconRefresh, IconCopy } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
-import PasswordDialog from '@/components/PasswordDialog';
+import { IconCopy, IconEdit, IconKey, IconLock, IconPlus, IconRefresh, IconTrash, IconX } from '@tabler/icons-react';
+import { useEffect, useState } from 'react';
 
 export default function Home() {
-  const theme = useMantineTheme();
   const [configs, setConfigs] = useState<SmtpConfig[]>([]);
   const [editingConfig, setEditingConfig] = useState<SmtpConfig | null>(null);
   const [deletingConfig, setDeletingConfig] = useState<SmtpConfig | null>(null);
@@ -172,6 +169,7 @@ export default function Home() {
       setIsPasswordDialogOpen(false);
       setPasswordError(undefined);
     } catch (error) {
+      console.error('Error during authentication:', error);
       setPasswordError('Invalid password. Please try again.');
     }
   };
@@ -390,7 +388,7 @@ export default function Home() {
       ) : configs.length === 0 ? (
         <Paper p="xl" radius="md" withBorder>
           <Text ta="center" c="dimmed">
-            No SMTP configurations found. Click "Add New Configuration" to create one.
+            No SMTP configurations found. Click Add New Configuration to create one.
           </Text>
         </Paper>
       ) : (
@@ -587,7 +585,7 @@ export default function Home() {
                     </ActionIcon>
                   </Group>
                   <Text size="xs" c="dimmed">
-                    Make sure to copy this token now. You won't be able to see it again!
+                    Make sure to copy this token now. You won&apos;t be able to see it again!
                   </Text>
                 </Stack>
               </Paper>
