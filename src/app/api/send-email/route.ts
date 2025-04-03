@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     // Find the configuration that matches the fromEmail and contains the authToken
     const config = configs.find((cfg: SmtpConfig) => 
       cfg.fromEmail === fromEmail && 
-      cfg.authTokens?.includes(authToken)
+      cfg.authTokens?.some((token: { token: string; name: string }) => token.token === authToken)
     );
 
     if (!config) {

@@ -9,5 +9,5 @@ export interface SmtpConfig {
   fromName: string;
   secure: boolean;
   active: boolean;
-  authTokens: string[];
+  authTokens: { token: string; name: string }[];
 } 

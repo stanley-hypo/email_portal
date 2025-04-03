@@ -42,8 +42,9 @@ export default function Home() {
   const [deleteError, setDeleteError] = useState<string | undefined>();
   const [tokenModalConfig, setTokenModalConfig] = useState<SmtpConfig | null>(null);
   const [isTokenModalOpen, setIsTokenModalOpen] = useState(false);
-  const [newToken, setNewToken] = useState<string | null>(null);
-  const [revokingToken, setRevokingToken] = useState<{ configId: string; token: string } | null>(null);
+  const [newToken, setNewToken] = useState<{ token: string; name: string } | null>(null);
+  const [tokenName, setTokenName] = useState('');
+  const [revokingToken, setRevokingToken] = useState<{ configId: string; token: string; name: string } | null>(null);
   const [revokeTokenInput, setRevokeTokenInput] = useState('');
   const [revokeError, setRevokeError] = useState<string | undefined>();
   const [postmanToken, setPostmanToken] = useState<{ token: string; config: SmtpConfig } | null>(null);
@@ -60,7 +61,7 @@ export default function Home() {
       fromName: '',
       secure: true,
       active: true,
-      authTokens: [] as string[],
+      authTokens: [] as { token: string; name: string }[],
     },
     validate: {
       name: (value) => (!value ? 'Name is required' : null),
@@ -207,7 +208,7 @@ export default function Home() {
     }
   };
 
-  const handleUpdateTokens = async (configId: string, tokens: string[]) => {
+  const handleUpdateTokens = async (configId: string, tokens: { token: string; name: string }[]) => {
     try {
       const response = await fetch(`/api/smtp-configs/${configId}`, {
         method: 'PUT',
@@ -302,6 +303,20 @@ export default function Home() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const handleRevokeToken = () => {
+    if (revokeTokenInput === revokingToken?.token) {
+      const config = configs.find(c => c.id === revokingToken.configId);
+      if (config) {
+        const updatedTokens = config.authTokens.filter(t => t.token !== revokingToken.token);
+        handleUpdateTokens(revokingToken.configId, updatedTokens);
+        setRevokingToken(null);
+        setRevokeTokenInput('');
+      }
+    } else {
+      setRevokeError('Token does not match');
+    }
   };
 
   if (!isAuthenticated) {
@@ -528,39 +543,44 @@ export default function Home() {
                     <Stack gap="xs" mt="xs">
                       <Text size="sm" fw={500}>Auth Tokens ({config.authTokens.length}):</Text>
                       <Stack gap="xs">
-                        {config.authTokens.map((token, index) => (
+                        {config.authTokens.map((tokenData, index) => (
                           <Paper key={index} p="xs" radius="md" withBorder>
-                            <Group justify="space-between">
-                              <Text size="sm" style={{ fontFamily: 'monospace' }}>
-                                {token}
-                              </Text>
-                              <Group>
-                                <Tooltip label="Show Postman Example">
-                                  <ActionIcon
-                                    color="blue"
+                            <Stack gap="xs">
+                              {tokenData.name && (
+                                <Text size="sm" fw={500}>{tokenData.name}</Text>
+                              )}
+                              <Group justify="space-between">
+                                <Text size="sm" style={{ fontFamily: 'monospace' }}>
+                                  {tokenData.token}
+                                </Text>
+                                <Group>
+                                  <Tooltip label="Show Postman Example">
+                                    <ActionIcon
+                                      color="blue"
+                                      variant="light"
+                                      onClick={() => {
+                                        setPostmanToken({ token: tokenData.token, config });
+                                        setIsPostmanModalOpen(true);
+                                      }}
+                                    >
+                                      <IconCode size={16} />
+                                    </ActionIcon>
+                                  </Tooltip>
+                                  <Button
                                     variant="light"
+                                    color="red"
+                                    size="xs"
                                     onClick={() => {
-                                      setPostmanToken({ token, config });
-                                      setIsPostmanModalOpen(true);
+                                      setRevokingToken({ configId: config.id, token: tokenData.token, name: tokenData.name });
+                                      setRevokeTokenInput('');
+                                      setRevokeError(undefined);
                                     }}
                                   >
-                                    <IconCode size={16} />
-                                  </ActionIcon>
-                                </Tooltip>
-                                <Button
-                                  variant="light"
-                                  color="red"
-                                  size="xs"
-                                  onClick={() => {
-                                    setRevokingToken({ configId: config.id, token });
-                                    setRevokeTokenInput('');
-                                    setRevokeError(undefined);
-                                  }}
-                                >
-                                  Revoke
-                                </Button>
+                                    Revoke
+                                  </Button>
+                                </Group>
                               </Group>
-                            </Group>
+                            </Stack>
                           </Paper>
                         ))}
                       </Stack>
@@ -628,6 +648,7 @@ export default function Home() {
           setIsTokenModalOpen(false);
           setTokenModalConfig(null);
           setNewToken(null);
+          setTokenName('');
         }}
         title="Manage Auth Tokens"
         size="md"
@@ -642,9 +663,8 @@ export default function Home() {
               leftSection={<IconRefresh size={16} />}
               onClick={() => {
                 const token = generateToken();
-                setNewToken(token);
-                const updatedTokens = [...(tokenModalConfig.authTokens || []), token];
-                handleUpdateTokens(tokenModalConfig.id, updatedTokens);
+                setNewToken({ token, name: '' });
+                setTokenName('');
               }}
             >
               Generate New Token
@@ -654,13 +674,19 @@ export default function Home() {
               <Paper p="md" radius="md" withBorder>
                 <Stack gap="xs">
                   <Text size="sm" fw={500}>New Token Generated:</Text>
+                  <TextInput
+                    label="Token Name"
+                    placeholder="Enter a name for this token (e.g., Production API)"
+                    value={tokenName}
+                    onChange={(e) => setTokenName(e.target.value)}
+                  />
                   <Group gap="xs">
-                    <Text size="sm" style={{ fontFamily: 'monospace' }}>{newToken}</Text>
+                    <Text size="sm" style={{ fontFamily: 'monospace' }}>{newToken.token}</Text>
                     <ActionIcon
                       color="blue"
                       variant="light"
                       onClick={() => {
-                        navigator.clipboard.writeText(newToken);
+                        navigator.clipboard.writeText(newToken.token);
                       }}
                     >
                       <IconCopy size={16} />
@@ -669,46 +695,66 @@ export default function Home() {
                   <Text size="xs" c="dimmed">
                     Make sure to copy this token now. You won&apos;t be able to see it again!
                   </Text>
+                  <Button
+                    variant="light"
+                    color="blue"
+                    onClick={() => {
+                      if (tokenName.trim()) {
+                        const updatedTokens = [...(tokenModalConfig?.authTokens || []), { token: newToken.token, name: tokenName }];
+                        handleUpdateTokens(tokenModalConfig!.id, updatedTokens);
+                        setNewToken(null);
+                        setTokenName('');
+                      }
+                    }}
+                    disabled={!tokenName.trim()}
+                  >
+                    Save Token
+                  </Button>
                 </Stack>
               </Paper>
             )}
 
-            {tokenModalConfig.authTokens && tokenModalConfig.authTokens.length > 0 && (
+            {tokenModalConfig?.authTokens && tokenModalConfig.authTokens.length > 0 && (
               <Stack gap="xs">
                 <Text size="sm" fw={500}>Existing Tokens:</Text>
                 <Stack gap="xs">
-                  {tokenModalConfig.authTokens.map((token, index) => (
+                  {tokenModalConfig.authTokens.map((tokenData, index) => (
                     <Paper key={index} p="xs" radius="md" withBorder>
-                      <Group justify="space-between">
-                        <Text size="sm" style={{ fontFamily: 'monospace' }}>
-                          {token}
-                        </Text>
-                        <Group>
-                          <Tooltip label="Show Postman Example">
-                            <ActionIcon
-                              color="blue"
+                      <Stack gap="xs">
+                        {tokenData.name && (
+                          <Text size="sm" fw={500}>{tokenData.name}</Text>
+                        )}
+                        <Group justify="space-between">
+                          <Text size="sm" style={{ fontFamily: 'monospace' }}>
+                            {tokenData.token}
+                          </Text>
+                          <Group>
+                            <Tooltip label="Show Postman Example">
+                              <ActionIcon
+                                color="blue"
+                                variant="light"
+                                onClick={() => {
+                                  setPostmanToken({ token: tokenData.token, config: tokenModalConfig });
+                                  setIsPostmanModalOpen(true);
+                                }}
+                              >
+                                <IconCode size={16} />
+                              </ActionIcon>
+                            </Tooltip>
+                            <Button
                               variant="light"
+                              color="red"
+                              size="xs"
                               onClick={() => {
-                                setPostmanToken({ token, config: tokenModalConfig });
-                                setIsPostmanModalOpen(true);
+                                const updatedTokens = tokenModalConfig.authTokens.filter((_, i) => i !== index);
+                                handleUpdateTokens(tokenModalConfig.id, updatedTokens);
                               }}
                             >
-                              <IconCode size={16} />
-                            </ActionIcon>
-                          </Tooltip>
-                          <Button
-                            variant="light"
-                            color="red"
-                            size="xs"
-                            onClick={() => {
-                              const updatedTokens = tokenModalConfig.authTokens.filter((_, i) => i !== index);
-                              handleUpdateTokens(tokenModalConfig.id, updatedTokens);
-                            }}
-                          >
-                            Revoke
-                          </Button>
+                              Revoke
+                            </Button>
+                          </Group>
                         </Group>
-                      </Group>
+                      </Stack>
                     </Paper>
                   ))}
                 </Stack>
@@ -756,19 +802,7 @@ export default function Home() {
             </Button>
             <Button
               color="red"
-              onClick={() => {
-                if (revokeTokenInput === revokingToken?.token) {
-                  const config = configs.find(c => c.id === revokingToken.configId);
-                  if (config) {
-                    const updatedTokens = config.authTokens.filter(t => t !== revokingToken.token);
-                    handleUpdateTokens(revokingToken.configId, updatedTokens);
-                    setRevokingToken(null);
-                    setRevokeTokenInput('');
-                  }
-                } else {
-                  setRevokeError('Token does not match');
-                }
-              }}
+              onClick={handleRevokeToken}
               disabled={revokeTokenInput !== revokingToken?.token}
             >
               Revoke Token
