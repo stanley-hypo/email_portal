@@ -281,7 +281,7 @@ export default function Home() {
       variable: [
         {
           key: "baseUrl",
-          value: process.env.NEXT_PUBLIC_BASE_URL,
+          value: process.env.NEXT_PUBLIC_APP_URL,
           type: "string"
         }
       ]
