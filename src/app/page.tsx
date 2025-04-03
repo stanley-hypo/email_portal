@@ -281,7 +281,7 @@ export default function Home() {
       variable: [
         {
           key: "baseUrl",
-          value: "http://localhost:3000",
+          value: process.env.NEXT_PUBLIC_BASE_URL,
           type: "string"
         }
       ]
