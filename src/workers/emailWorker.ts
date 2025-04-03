@@ -22,6 +22,16 @@ const worker = new Worker('email-queue', async (job: Job<EmailJob>) => {
   console.log('From Name:', fromName);
   console.log('Config:', config);
 
+  console.log({
+    host: config.host,
+    port: config.port,
+    secure: config.secure,
+    auth: {
+      user: config.username,
+      pass: config.password,
+    },
+  })
+
   // Create transporter
   const transporter = nodemailer.createTransport({
     host: config.host,
