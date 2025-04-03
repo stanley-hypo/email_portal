@@ -789,7 +789,7 @@ export default function Home() {
         {postmanToken && (
           <Stack gap="md">
             <Text size="sm">
-              Here's how to use this token in Postman:
+              Here is how to use this token in Postman:
             </Text>
             
             <Paper p="md" radius="md" withBorder>
