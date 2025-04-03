@@ -24,7 +24,7 @@ import {
   Tooltip
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { IconCopy, IconEdit, IconKey, IconLock, IconPlus, IconRefresh, IconTrash, IconX } from '@tabler/icons-react';
+import { IconCopy, IconEdit, IconKey, IconLock, IconPlus, IconRefresh, IconTrash, IconX, IconCode, IconDownload } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 
 export default function Home() {
@@ -46,6 +46,8 @@ export default function Home() {
   const [revokingToken, setRevokingToken] = useState<{ configId: string; token: string } | null>(null);
   const [revokeTokenInput, setRevokeTokenInput] = useState('');
   const [revokeError, setRevokeError] = useState<string | undefined>();
+  const [postmanToken, setPostmanToken] = useState<{ token: string; config: SmtpConfig } | null>(null);
+  const [isPostmanModalOpen, setIsPostmanModalOpen] = useState(false);
 
   const form = useForm({
     initialValues: {
@@ -234,6 +236,72 @@ export default function Home() {
       .replace(/\//g, '_')
       .replace(/=/g, '')
       .substring(0, 32);
+  };
+
+  const generatePostmanCollection = (token: string, config: SmtpConfig) => {
+    const collection = {
+      info: {
+        name: `SMTP Email API - ${config.name}`,
+        schema: "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+      },
+      item: [
+        {
+          name: "Send Email",
+          request: {
+            method: "POST",
+            header: [
+              {
+                key: "Authorization",
+                value: `Bearer ${token}`,
+                type: "text"
+              },
+              {
+                key: "Content-Type",
+                value: "application/json",
+                type: "text"
+              }
+            ],
+            body: {
+              mode: "raw",
+              raw: JSON.stringify({
+                to: "recipient@example.com",
+                subject: "Test Email",
+                body: "This is a test email",
+                fromEmail: config.fromEmail
+              }, null, 2)
+            },
+            url: {
+              raw: "{{baseUrl}}/api/send-email",
+              host: ["{{baseUrl}}"],
+              path: ["api", "send-email"]
+            }
+          }
+        }
+      ],
+      variable: [
+        {
+          key: "baseUrl",
+          value: "http://localhost:3000",
+          type: "string"
+        }
+      ]
+    };
+    return collection;
+  };
+
+  const handleDownloadPostmanCollection = () => {
+    if (!postmanToken) return;
+    
+    const collection = generatePostmanCollection(postmanToken.token, postmanToken.config);
+    const blob = new Blob([JSON.stringify(collection, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `SMTP_Email_API_${postmanToken.config.name.replace(/\s+/g, '_')}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   if (!isAuthenticated) {
@@ -466,18 +534,32 @@ export default function Home() {
                               <Text size="sm" style={{ fontFamily: 'monospace' }}>
                                 {token}
                               </Text>
-                              <Button
-                                variant="light"
-                                color="red"
-                                size="xs"
-                                onClick={() => {
-                                  setRevokingToken({ configId: config.id, token });
-                                  setRevokeTokenInput('');
-                                  setRevokeError(undefined);
-                                }}
-                              >
-                                Revoke
-                              </Button>
+                              <Group>
+                                <Tooltip label="Show Postman Example">
+                                  <ActionIcon
+                                    color="blue"
+                                    variant="light"
+                                    onClick={() => {
+                                      setPostmanToken({ token, config });
+                                      setIsPostmanModalOpen(true);
+                                    }}
+                                  >
+                                    <IconCode size={16} />
+                                  </ActionIcon>
+                                </Tooltip>
+                                <Button
+                                  variant="light"
+                                  color="red"
+                                  size="xs"
+                                  onClick={() => {
+                                    setRevokingToken({ configId: config.id, token });
+                                    setRevokeTokenInput('');
+                                    setRevokeError(undefined);
+                                  }}
+                                >
+                                  Revoke
+                                </Button>
+                              </Group>
                             </Group>
                           </Paper>
                         ))}
@@ -601,17 +683,31 @@ export default function Home() {
                         <Text size="sm" style={{ fontFamily: 'monospace' }}>
                           {token}
                         </Text>
-                        <Button
-                          variant="light"
-                          color="red"
-                          size="xs"
-                          onClick={() => {
-                            const updatedTokens = tokenModalConfig.authTokens.filter((_, i) => i !== index);
-                            handleUpdateTokens(tokenModalConfig.id, updatedTokens);
-                          }}
-                        >
-                          Revoke
-                        </Button>
+                        <Group>
+                          <Tooltip label="Show Postman Example">
+                            <ActionIcon
+                              color="blue"
+                              variant="light"
+                              onClick={() => {
+                                setPostmanToken({ token, config: tokenModalConfig });
+                                setIsPostmanModalOpen(true);
+                              }}
+                            >
+                              <IconCode size={16} />
+                            </ActionIcon>
+                          </Tooltip>
+                          <Button
+                            variant="light"
+                            color="red"
+                            size="xs"
+                            onClick={() => {
+                              const updatedTokens = tokenModalConfig.authTokens.filter((_, i) => i !== index);
+                              handleUpdateTokens(tokenModalConfig.id, updatedTokens);
+                            }}
+                          >
+                            Revoke
+                          </Button>
+                        </Group>
                       </Group>
                     </Paper>
                   ))}
@@ -679,6 +775,71 @@ export default function Home() {
             </Button>
           </Group>
         </Stack>
+      </Modal>
+
+      <Modal
+        opened={isPostmanModalOpen}
+        onClose={() => {
+          setIsPostmanModalOpen(false);
+          setPostmanToken(null);
+        }}
+        title="Postman Example"
+        size="lg"
+      >
+        {postmanToken && (
+          <Stack gap="md">
+            <Text size="sm">
+              Here's how to use this token in Postman:
+            </Text>
+            
+            <Paper p="md" radius="md" withBorder>
+              <Stack gap="xs">
+                <Text size="sm" fw={500}>Request Details:</Text>
+                <Text size="sm" style={{ fontFamily: 'monospace' }}>
+                  POST /api/send-email
+                </Text>
+                <Text size="sm" fw={500}>Headers:</Text>
+                <Text size="sm" style={{ fontFamily: 'monospace' }}>
+                  Authorization: Bearer {postmanToken.token}
+                </Text>
+                <Text size="sm" fw={500}>Body (JSON):</Text>
+                <Text size="sm" style={{ fontFamily: 'monospace' }}>
+                  {JSON.stringify({
+                    to: "recipient@example.com",
+                    subject: "Test Email",
+                    body: "This is a test email",
+                    fromEmail: postmanToken.config.fromEmail
+                  }, null, 2)}
+                </Text>
+              </Stack>
+            </Paper>
+
+            <Text size="sm" c="dimmed">
+              Make sure to replace the recipient email address and content with your desired values.
+            </Text>
+
+            <Group justify="flex-end" mt="md">
+              <Button
+                variant="light"
+                color="blue"
+                onClick={handleDownloadPostmanCollection}
+                leftSection={<IconDownload size={16} />}
+              >
+                Download Postman Collection
+              </Button>
+              <Button
+                variant="light"
+                color="gray"
+                onClick={() => {
+                  setIsPostmanModalOpen(false);
+                  setPostmanToken(null);
+                }}
+              >
+                Close
+              </Button>
+            </Group>
+          </Stack>
+        )}
       </Modal>
     </Container>
   );
