@@ -21,7 +21,8 @@ import {
   Text,
   TextInput,
   Title,
-  Tooltip
+  Tooltip,
+  Textarea
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconCopy, IconEdit, IconKey, IconLock, IconPlus, IconRefresh, IconTrash, IconX, IconCode, IconDownload } from '@tabler/icons-react';
@@ -49,6 +50,48 @@ export default function Home() {
   const [revokeError, setRevokeError] = useState<string | undefined>();
   const [postmanToken, setPostmanToken] = useState<{ token: string; config: SmtpConfig } | null>(null);
   const [isPostmanModalOpen, setIsPostmanModalOpen] = useState(false);
+  const [showFormInputs, setShowFormInputs] = useState(false);
+  const [postmanEmail, setPostmanEmail] = useState('henry@hypoidea.com');
+  const [postmanHtmlBody, setPostmanHtmlBody] = useState(`<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #f8f9fa; padding: 20px; text-align: center; }
+        .content { padding: 20px; }
+        .button { 
+            display: inline-block; 
+            padding: 10px 20px; 
+            background-color: #4CAF50; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 5px; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Welcome to Our Service</h1>
+        </div>
+        <div class="content">
+            <p>Hello,</p>
+            <p>Thank you for joining our platform. We're excited to have you on board!</p>
+            <p>Here are some key features you can explore:</p>
+            <ul>
+                <li>Feature 1</li>
+                <li>Feature 2</li>
+                <li>Feature 3</li>
+            </ul>
+            <p>If you have any questions, feel free to contact us.</p>
+            <p>
+                <a href="#" class="button">Get Started</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>`);
 
   const form = useForm({
     initialValues: {
@@ -265,9 +308,9 @@ export default function Home() {
             body: {
               mode: "raw",
               raw: JSON.stringify({
-                to: "recipient@example.com",
+                to: postmanEmail,
                 subject: "Test Email",
-                body: "This is a test email",
+                body: postmanHtmlBody,
                 fromEmail: config.fromEmail
               }, null, 2)
             },
@@ -825,7 +868,49 @@ export default function Home() {
             <Text size="sm">
               Here is how to use this token in Postman:
             </Text>
-            
+
+            <Button
+              variant="light"
+              onClick={() => setShowFormInputs(!showFormInputs)}
+              leftSection={<IconEdit size={16} />}
+            >
+              {showFormInputs ? 'Hide Form Inputs' : 'Show Form Inputs'}
+            </Button>
+
+            {showFormInputs && (
+              <>
+                <TextInput
+                  label="Recipient Email"
+                  placeholder="Enter recipient email"
+                  value={postmanEmail}
+                  onChange={(e) => setPostmanEmail(e.target.value)}
+                />
+
+                <Textarea
+                  label="HTML Body"
+                  placeholder="Enter HTML content"
+                  value={postmanHtmlBody}
+                  onChange={(e) => setPostmanHtmlBody(e.target.value)}
+                  minRows={10}
+                  autosize
+                />
+              </>
+            )}
+
+            <Paper p="md" radius="md" withBorder>
+              <Text size="sm" fw={500}>HTML Preview:</Text>
+              <div 
+                style={{ 
+                  border: '1px solid #ddd', 
+                  padding: '20px', 
+                  marginTop: '10px',
+                  maxHeight: '300px',
+                  overflow: 'auto'
+                }}
+                dangerouslySetInnerHTML={{ __html: postmanHtmlBody }}
+              />
+            </Paper>
+
             <Paper p="md" radius="md" withBorder>
               <Stack gap="xs">
                 <Text size="sm" fw={500}>Request Details:</Text>
@@ -839,9 +924,9 @@ export default function Home() {
                 <Text size="sm" fw={500}>Body (JSON):</Text>
                 <Text size="sm" style={{ fontFamily: 'monospace' }}>
                   {JSON.stringify({
-                    to: "recipient@example.com",
+                    to: postmanEmail,
                     subject: "Test Email",
-                    body: "This is a test email",
+                    body: postmanHtmlBody,
                     fromEmail: postmanToken.config.fromEmail
                   }, null, 2)}
                 </Text>
@@ -851,29 +936,28 @@ export default function Home() {
             <Text size="sm" c="dimmed">
               Make sure to replace the recipient email address and content with your desired values.
             </Text>
-
-            <Group justify="flex-end" mt="md">
-              <Button
-                variant="light"
-                color="blue"
-                onClick={handleDownloadPostmanCollection}
-                leftSection={<IconDownload size={16} />}
-              >
-                Download Postman Collection
-              </Button>
-              <Button
-                variant="light"
-                color="gray"
-                onClick={() => {
-                  setIsPostmanModalOpen(false);
-                  setPostmanToken(null);
-                }}
-              >
-                Close
-              </Button>
-            </Group>
           </Stack>
         )}
+        <Group justify="flex-end" mt="md" style={{ position: 'sticky', bottom: 0, background: 'white', padding: '16px', borderTop: '1px solid #eee' }}>
+          <Button
+            variant="light"
+            color="blue"
+            onClick={handleDownloadPostmanCollection}
+            leftSection={<IconDownload size={16} />}
+          >
+            Download Postman Collection
+          </Button>
+          <Button
+            variant="light"
+            color="gray"
+            onClick={() => {
+              setIsPostmanModalOpen(false);
+              setPostmanToken(null);
+            }}
+          >
+            Close
+          </Button>
+        </Group>
       </Modal>
     </Container>
   );
