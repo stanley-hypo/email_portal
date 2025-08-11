@@ -34,7 +34,7 @@ function verifyAuth(request: NextRequest): boolean {
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!verifyAuth(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -43,7 +43,8 @@ export async function PUT(
   try {
     const body = await request.json();
     const configs = await readPdfConfigs();
-    const configIndex = configs.findIndex(config => config.id === params.id);
+    const { id } = await params;
+    const configIndex = configs.findIndex(config => config.id === id);
 
     if (configIndex === -1) {
       return NextResponse.json({ error: 'Configuration not found' }, { status: 404 });
@@ -73,7 +74,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!verifyAuth(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -81,7 +82,8 @@ export async function DELETE(
 
   try {
     const configs = await readPdfConfigs();
-    const configIndex = configs.findIndex(config => config.id === params.id);
+    const { id } = await params;
+    const configIndex = configs.findIndex(config => config.id === id);
 
     if (configIndex === -1) {
       return NextResponse.json({ error: 'Configuration not found' }, { status: 404 });
