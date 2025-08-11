@@ -1,4 +1,4 @@
-# Email Portal
+# API Portal
 
 A modern email management application built with Next.js, PostgreSQL, and Redis.
 

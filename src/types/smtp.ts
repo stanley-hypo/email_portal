@@ -11,3 +11,11 @@ export interface SmtpConfig {
   active: boolean;
   authTokens: { token: string; name: string }[];
 } 
+
+export interface PdfConfig {
+  id: string;
+  name: string;
+  ipWhitelist: string[];
+  authTokens: { token: string; name: string }[];
+  active: boolean;
+}

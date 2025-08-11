@@ -1,23 +1,23 @@
 version: "3"
 
 services:
-  web:
-    build: .
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=development
-# Enable Auto update in Windows
-      - CHOKIDAR_USEPOLLING=true
-      - WATCHPACK_POLLING=true      
-    volumes:
-      - .:/app
-      - /app/node_modules
-    depends_on:
-      - postgres
-      - redis
-    networks:
-      - app-network
+#   web:
+#     build: .
+#     ports:
+#       - "3000:3000"
+#     environment:
+#       - NODE_ENV=development
+# # Enable Auto update in Windows
+#       - CHOKIDAR_USEPOLLING=true
+#       - WATCHPACK_POLLING=true      
+#     volumes:
+#       - .:/app
+#       - /app/node_modules
+#     depends_on:
+#       - postgres
+#       - redis
+#     networks:
+#       - app-network
 
   postgres:
     image: postgres:latest
