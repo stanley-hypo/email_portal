@@ -1,22 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import {
-  Container,
-  Paper,
-  Title,
-  Text,
-  PasswordInput,
-  Button,
-  Stack,
   Alert,
   Box,
+  Button,
   Center,
-  Image
+  Container,
+  Paper,
+  PasswordInput,
+  Stack,
+  Text,
+  Title
 } from '@mantine/core';
 import { IconLock, IconLogin } from '@tabler/icons-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function LoginPage() {
   const [password, setPassword] = useState('');
@@ -50,6 +49,7 @@ export default function LoginPage() {
         setError('Invalid password. Please try again.');
       }
     } catch (error) {
+      console.error('Error during login:', error);
       setError('An error occurred during login. Please try again.');
     } finally {
       setIsLoading(false);
@@ -58,7 +58,8 @@ export default function LoginPage() {
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleSubmit(e as any);
+      e.preventDefault();
+      handleSubmit(e as React.FormEvent);
     }
   };
 

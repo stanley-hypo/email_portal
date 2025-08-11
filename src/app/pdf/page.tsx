@@ -23,7 +23,7 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconCopy, IconEdit, IconKey, IconPlus, IconRefresh, IconTrash, IconX, IconFileTypePdf, IconCode, IconDownload } from '@tabler/icons-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
@@ -192,7 +192,7 @@ export default function PdfPage() {
     },
   });
 
-  const loadConfigs = async () => {
+  const loadConfigs = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await fetch('/api/pdf-configs', {
@@ -210,13 +210,13 @@ export default function PdfPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [authToken]);
 
   useEffect(() => {
     if (authToken) {
       loadConfigs();
     }
-  }, [authToken]);
+  }, [authToken, loadConfigs]);
 
   const handleSubmit = async (values: typeof form.values) => {
     try {

@@ -24,7 +24,7 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconCopy, IconEdit, IconKey, IconPlus, IconRefresh, IconTrash, IconX, IconCode, IconDownload } from '@tabler/icons-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
@@ -114,7 +114,7 @@ export default function SmtpPage() {
     },
   });
 
-  const loadConfigs = async () => {
+  const loadConfigs = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await fetch('/api/smtp-configs', {
@@ -132,13 +132,13 @@ export default function SmtpPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [authToken]);
 
   useEffect(() => {
     if (authToken) {
       loadConfigs();
     }
-  }, [authToken]);
+  }, [authToken, loadConfigs]);
 
   const handleSubmit = async (values: typeof form.values) => {
     try {
