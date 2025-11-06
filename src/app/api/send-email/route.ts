@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     // Get request body
     const body = await request.json();
-    const { to, subject, body: emailBody, fromEmail } = body;
+    const { to, subject, body: emailBody, fromEmail, attachments } = body;
 
     // Validate required fields
     if (!to || !subject || !emailBody || !fromEmail) {
@@ -32,6 +32,16 @@ export async function POST(request: NextRequest) {
         { error: 'Missing required fields: to, subject, body, fromEmail' },
         { status: 400 }
       );
+    }
+
+    // Validate attachments if provided
+    if (attachments !== undefined) {
+      if (!Array.isArray(attachments)) {
+        return NextResponse.json(
+          { error: 'attachments must be an array when provided' },
+          { status: 400 }
+        );
+      }
     }
 
     // Get all SMTP configurations
@@ -58,6 +68,7 @@ export async function POST(request: NextRequest) {
       body: emailBody,
       fromEmail,
       fromName: config.fromName,
+      attachments,
     });
 
     return NextResponse.json({ 

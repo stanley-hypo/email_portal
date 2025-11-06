@@ -2,19 +2,11 @@ import { Worker, Job } from 'bullmq';
 import nodemailer from 'nodemailer';
 import { SmtpConfig } from '@/types/smtp';
 import { logger } from '@/utils/logger';
-
-interface EmailJob {
-  config: SmtpConfig;
-  to: string;
-  subject: string;
-  body: string;
-  fromEmail: string;
-  fromName: string;
-}
+import type { EmailJobPayload } from '@/types/email';
 
 // Create email worker
-const worker = new Worker('email-queue', async (job: Job<EmailJob>) => {
-  const { config, to, subject, body, fromEmail, fromName } = job.data;
+const worker = new Worker('email-queue', async (job: Job<EmailJobPayload>) => {
+  const { config, to, subject, body, fromEmail, fromName, attachments } = job.data;
 
   logger.info(`[Worker] Starting job ${job.id} - Sending email to: ${to}`, {
     jobId: job.id,
@@ -44,6 +36,14 @@ const worker = new Worker('email-queue', async (job: Job<EmailJob>) => {
       to,
       subject,
       html: body,
+      attachments: attachments?.map(a => ({
+        filename: a.filename,
+        content: a.content,
+        path: a.path,
+        contentType: a.contentType,
+        encoding: a.encoding as any,
+        cid: a.cid,
+      })),
     });
 
     logger.success(`[Worker] Job ${job.id} - Email sent successfully`, {
@@ -78,7 +78,7 @@ const worker = new Worker('email-queue', async (job: Job<EmailJob>) => {
 });
 
 // Handle completed jobs
-worker.on('completed', (job: Job<EmailJob>) => {
+worker.on('completed', (job: Job<EmailJobPayload>) => {
   logger.success(`[Worker] ✓ Email job ${job.id} completed successfully`, {
     jobId: job.id,
     recipient: job.data.to,
@@ -87,7 +87,7 @@ worker.on('completed', (job: Job<EmailJob>) => {
 });
 
 // Handle failed jobs
-worker.on('failed', (job: Job<EmailJob> | undefined, err: Error) => {
+worker.on('failed', (job: Job<EmailJobPayload> | undefined, err: Error) => {
   if (job) {
     logger.error(`[Worker] ✗ Email job ${job.id} FAILED`, {
       jobId: job.id,

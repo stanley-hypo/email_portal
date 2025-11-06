@@ -286,7 +286,15 @@ export default function SmtpPage() {
                 to: postmanEmail,
                 subject: "Test Email",
                 body: postmanHtmlBody,
-                fromEmail: config.fromEmail
+                fromEmail: config.fromEmail,
+                attachments: [
+                  {
+                    filename: "hello.txt",
+                    content: "SGVsbG8gV29ybGQhCg==",
+                    encoding: "base64",
+                    contentType: "text/plain"
+                  }
+                ]
               }, null, 2)
             },
             url: {
@@ -879,8 +887,84 @@ export default function SmtpPage() {
                     to: postmanEmail,
                     subject: "Test Email",
                     body: postmanHtmlBody,
-                    fromEmail: postmanToken.config.fromEmail
+                    fromEmail: postmanToken.config.fromEmail,
+                    attachments: [
+                      {
+                        filename: "hello.txt",
+                        content: "SGVsbG8gV29ybGQhCg==",
+                        encoding: "base64",
+                        contentType: "text/plain"
+                      }
+                    ]
                   }, null, 2)}
+                </Text>
+              </Stack>
+            </Paper>
+
+            <Paper p="md" radius="md" withBorder>
+              <Stack gap="xs">
+                <Text size="sm" fw={500}>Attachments Guide:</Text>
+                <Text size="sm">
+                  - Include an <Text span fw={600}>attachments</Text> array in the JSON body. Each item supports <Text span fw={600}>filename</Text>, and either <Text span fw={600}>content + encoding</Text> or a <Text span fw={600}>path</Text>. Optional: <Text span fw={600}>contentType</Text>, <Text span fw={600}>cid</Text> (for inline images).
+                </Text>
+                <Text size="sm" fw={500}>A) Base64 content (PDF example)</Text>
+                <Text size="sm" style={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
+                  {JSON.stringify({
+                    attachments: [
+                      {
+                        filename: "report.pdf",
+                        content: "<base64-encoded-pdf-content>",
+                        encoding: "base64",
+                        contentType: "application/pdf"
+                      }
+                    ]
+                  }, null, 2)}
+                </Text>
+                <Text size="sm" fw={500}>B) Inline image with CID</Text>
+                <Text size="sm">Use this in your HTML body:</Text>
+                <Text size="sm" style={{ fontFamily: 'monospace' }}>
+                  {"<img src=\"cid:logo@yourapp\" alt=\"Logo\" />"}
+                </Text>
+                <Text size="sm">And attach as:</Text>
+                <Text size="sm" style={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
+                  {JSON.stringify({
+                    attachments: [
+                      {
+                        filename: "logo.png",
+                        content: "<base64-encoded-png>",
+                        encoding: "base64",
+                        contentType: "image/png",
+                        cid: "logo@yourapp"
+                      }
+                    ]
+                  }, null, 2)}
+                </Text>
+                <Text size="sm" fw={500}>C) Remote URL via path</Text>
+                <Text size="sm" style={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
+                  {JSON.stringify({
+                    attachments: [
+                      {
+                        filename: "manual.pdf",
+                        path: "https://example.com/files/manual.pdf",
+                        contentType: "application/pdf"
+                      }
+                    ]
+                  }, null, 2)}
+                </Text>
+                <Text size="sm" fw={500}>D) Local file path (worker must have access)</Text>
+                <Text size="sm" style={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
+                  {JSON.stringify({
+                    attachments: [
+                      {
+                        filename: "invoice.pdf",
+                        path: "/app/shared/invoices/invoice-1234.pdf",
+                        contentType: "application/pdf"
+                      }
+                    ]
+                  }, null, 2)}
+                </Text>
+                <Text size="sm" c="dimmed">
+                  Tip: For large files, prefer <Text span fw={600}>path</Text> URLs or shared volumes so the worker can stream files instead of embedding large base64 in the job payload.
                 </Text>
               </Stack>
             </Paper>
