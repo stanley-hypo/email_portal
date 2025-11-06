@@ -1,6 +1,5 @@
 import { Worker, Job } from 'bullmq';
 import nodemailer from 'nodemailer';
-import { SmtpConfig } from '@/types/smtp';
 import { logger } from '@/utils/logger';
 import type { EmailJobPayload } from '@/types/email';
 
@@ -41,7 +40,7 @@ const worker = new Worker('email-queue', async (job: Job<EmailJobPayload>) => {
         content: a.content,
         path: a.path,
         contentType: a.contentType,
-        encoding: a.encoding as any,
+        encoding: a.encoding,
         cid: a.cid,
       })),
     });

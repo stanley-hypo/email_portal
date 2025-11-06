@@ -11,10 +11,13 @@ if (!fs.existsSync(logsDir)) {
 const infoLogPath = path.join(logsDir, 'worker.log');
 const errorLogPath = path.join(logsDir, 'worker-error.log');
 
+type LogLevel = 'INFO' | 'ERROR' | 'SUCCESS';
+type LogData = Record<string, unknown>;
+
 // Helper to format log messages
-function formatLogMessage(level: string, message: string, data?: any): string {
+function formatLogMessage(level: LogLevel, message: string, data?: LogData): string {
   const timestamp = new Date().toISOString();
-  const logEntry = {
+  const logEntry: Record<string, unknown> = {
     timestamp,
     level,
     message,
@@ -33,20 +36,20 @@ function appendToFile(filePath: string, content: string): void {
 }
 
 export const logger = {
-  info: (message: string, data?: any) => {
+  info: (message: string, data?: LogData) => {
     const logMessage = formatLogMessage('INFO', message, data);
     appendToFile(infoLogPath, logMessage);
     console.log(message, data || '');
   },
 
-  error: (message: string, data?: any) => {
+  error: (message: string, data?: LogData) => {
     const logMessage = formatLogMessage('ERROR', message, data);
     appendToFile(errorLogPath, logMessage);
     appendToFile(infoLogPath, logMessage); // Also write to main log
     console.error(message, data || '');
   },
 
-  success: (message: string, data?: any) => {
+  success: (message: string, data?: LogData) => {
     const logMessage = formatLogMessage('SUCCESS', message, data);
     appendToFile(infoLogPath, logMessage);
     console.log(message, data || '');
