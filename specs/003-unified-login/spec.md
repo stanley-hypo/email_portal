@@ -5,6 +5,12 @@
 **Status**: Draft  
 **Input**: User description: "取代現有login，login 後可以使用 smtp or PDF 入邊portal 功能"
 
+## Clarifications
+
+### Session 2025-11-30
+
+- Q: Should the system implement automatic session timeout for idle users? → A: No, sessions should persist indefinitely until explicit logout
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Single Login Access to Portal (Priority: P1)
@@ -70,8 +76,7 @@ Users have a persistent authenticated session that allows them to navigate betwe
 
 1. **Given** an authenticated user, **When** they navigate between SMTP and PDF portal sections, **Then** they remain authenticated without needing to login again
 2. **Given** an authenticated user, **When** they click logout, **Then** their session is terminated and they are redirected to the login page
-3. **Given** an authenticated user with an idle session, **When** the session timeout period expires, **Then** they are automatically logged out and redirected to login
-4. **Given** a logged-out user, **When** they attempt to access any portal feature, **Then** they are redirected to the login page
+3. **Given** a logged-out user, **When** they attempt to access any portal feature, **Then** they are redirected to the login page
 
 ---
 
@@ -101,7 +106,7 @@ Users have a persistent authenticated session that allows them to navigate betwe
 - **FR-011**: System MUST preserve all existing SMTP configuration management functionality (create, read, update, delete configurations)
 - **FR-012**: System MUST preserve all existing PDF configuration management functionality (create, read, update, delete configurations)
 - **FR-013**: System MUST preserve authentication token management for both SMTP and PDF services
-- **FR-014**: System MUST handle session timeout after a period of inactivity
+- **FR-014**: System MUST maintain persistent sessions without automatic timeout (users remain logged in until explicit logout)
 - **FR-015**: System MUST prevent access to portal features without valid authentication
 
 ### Key Entities
