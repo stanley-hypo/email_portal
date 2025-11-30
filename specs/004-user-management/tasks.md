@@ -24,9 +24,9 @@
 
 **Purpose**: Project initialization and database schema updates
 
-- [ ] T001 Add `isAdmin` column to users table in `src/db/schema.ts`
-- [ ] T002 Run database migration with `npx drizzle-kit push`
-- [ ] T003 Update NextAuth callbacks to include `isAdmin` in session/JWT in `src/lib/auth.config.ts`
+- [x] T001 Add `isAdmin` column to users table in `src/db/schema.ts`
+- [x] T002 Run database migration with `npx drizzle-kit push`
+- [x] T003 Update NextAuth callbacks to include `isAdmin` in session/JWT in `src/lib/auth.config.ts`
 
 ---
 
@@ -36,9 +36,9 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 Create user server actions file structure at `src/app/actions/user.ts`
-- [ ] T005 [P] Create admin authorization helper function in `src/lib/auth-helpers.ts`
-- [ ] T006 [P] Create user validation schemas using Zod in `src/lib/validations/user.ts`
+- [x] T004 Create user server actions file structure at `src/app/actions/user.ts`
+- [x] T005 [P] Create admin authorization helper function in `src/lib/auth-helpers.ts`
+- [x] T006 [P] Create user validation schemas using Zod in `src/lib/validations/user.ts`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -52,17 +52,17 @@
 
 ### Implementation for User Story 1
 
-- [ ] T007 [P] [US1] Implement `getUsers` server action in `src/app/actions/user.ts`
-- [ ] T008 [P] [US1] Implement `createUser` server action in `src/app/actions/user.ts`
-- [ ] T009 [P] [US1] Implement `updateUser` server action in `src/app/actions/user.ts`
-- [ ] T010 [P] [US1] Implement `deleteUser` server action with self-deletion prevention in `src/app/actions/user.ts`
-- [ ] T011 [US1] Create user management page route at `src/app/portal/users/page.tsx`
-- [ ] T012 [US1] Create UserTable component using Mantine Table in `src/app/portal/users/components/UserTable.tsx`
-- [ ] T013 [P] [US1] Create CreateUserModal component with Mantine Form in `src/app/portal/users/components/CreateUserModal.tsx`
-- [ ] T014 [P] [US1] Create EditUserModal component with Mantine Form in `src/app/portal/users/components/EditUserModal.tsx`
-- [ ] T015 [US1] Add admin-only access check to user management page in `src/app/portal/users/page.tsx`
-- [ ] T016 [US1] Integrate all CRUD operations with UI components in `src/app/portal/users/page.tsx`
-- [ ] T017 [US1] Add error handling and success notifications using Mantine notifications
+- [x] T007 [P] [US1] Implement `getUsers` server action in `src/app/actions/user.ts`
+- [x] T008 [P] [US1] Implement `createUser` server action in `src/app/actions/user.ts`
+- [x] T009 [P] [US1] Implement `updateUser` server action in `src/app/actions/user.ts`
+- [x] T010 [P] [US1] Implement `deleteUser` server action with self-deletion prevention in `src/app/actions/user.ts`
+- [x] T011 [US1] Create user management page route at `src/app/portal/users/page.tsx`
+- [x] T012 [US1] Create UserTable component using Mantine Table in `src/app/portal/users/components/UserTable.tsx`
+- [x] T013 [P] [US1] Create CreateUserModal component with Mantine Form in `src/app/portal/users/components/CreateUserModal.tsx`
+- [x] T014 [P] [US1] Create EditUserModal component with Mantine Form in `src/app/portal/users/components/EditUserModal.tsx`
+- [x] T015 [US1] Add admin-only access check to user management page in `src/app/portal/users/page.tsx`
+- [x] T016 [US1] Integrate all CRUD operations with UI components in `src/app/portal/users/page.tsx`
+- [x] T017 [US1] Add error handling and success notifications using Mantine notifications
 
 **Checkpoint**: At this point, User Story 1 should be fully functional - admins can manage all users via UI
 

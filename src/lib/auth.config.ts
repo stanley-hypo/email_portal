@@ -5,6 +5,18 @@ export const authConfig = {
         signIn: "/login",
     },
     callbacks: {
+        async jwt({ token, user }) {
+            if (user) {
+                token.isAdmin = user.isAdmin;
+            }
+            return token;
+        },
+        async session({ session, token }) {
+            if (token && session.user) {
+                session.user.isAdmin = token.isAdmin as boolean;
+            }
+            return session;
+        },
         authorized({ auth, request: { nextUrl } }) {
             const isLoggedIn = !!auth?.user;
             const isProtected =
