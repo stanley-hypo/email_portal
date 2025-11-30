@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { getUsers, deleteUser } from "@/app/actions/user";
 import { notifications } from "@mantine/notifications";
 import { EditUserModal } from "./EditUserModal";
+import { ResetPasswordModal } from "./ResetPasswordModal";
 import { modals } from "@mantine/modals";
 
 interface User {
@@ -21,6 +22,7 @@ export function UserTable() {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [resettingPasswordUser, setResettingPasswordUser] = useState<User | null>(null);
 
     const fetchUsers = async () => {
         setLoading(true);
@@ -107,7 +109,7 @@ export function UserTable() {
                             </Menu.Item>
                             <Menu.Item
                                 leftSection={<IconKey size={14} />}
-                                onClick={() => { }}
+                                onClick={() => setResettingPasswordUser(user)}
                             >
                                 Reset Password
                             </Menu.Item>
@@ -149,6 +151,16 @@ export function UserTable() {
                     onClose={() => {
                         setEditingUser(null);
                         fetchUsers();
+                    }}
+                />
+            )}
+
+            {resettingPasswordUser && (
+                <ResetPasswordModal
+                    user={resettingPasswordUser}
+                    opened={!!resettingPasswordUser}
+                    onClose={() => {
+                        setResettingPasswordUser(null);
                     }}
                 />
             )}

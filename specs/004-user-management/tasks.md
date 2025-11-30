@@ -76,15 +76,15 @@
 
 ### Implementation for User Story 2
 
-- [ ] T018 [P] [US2] Implement `updateSelfPassword` server action in `src/app/actions/user.ts`
-- [ ] T019 [P] [US2] Implement `adminResetPassword` server action in `src/app/actions/user.ts`
-- [ ] T020 [US2] Create password update validation schema in `src/lib/validations/user.ts`
-- [ ] T021 [US2] Create ChangePasswordModal component for self-update in `src/app/portal/profile/components/ChangePasswordModal.tsx`
-- [ ] T022 [US2] Create ResetPasswordModal component for admin use in `src/app/portal/users/components/ResetPasswordModal.tsx`
-- [ ] T023 [US2] Add "Change Password" button to user profile page at `src/app/portal/profile/page.tsx`
-- [ ] T024 [US2] Add "Reset Password" button to user management table in `src/app/portal/users/components/UserTable.tsx`
-- [ ] T025 [US2] Integrate password hashing with bcryptjs in both server actions
-- [ ] T026 [US2] Add validation for current password verification in `updateSelfPassword`
+- [x] T018 [P] [US2] Implement `updateSelfPassword` server action in `src/app/actions/user.ts`
+- [x] T019 [P] [US2] Implement `adminResetPassword` server action in `src/app/actions/user.ts`
+- [x] T020 [US2] Create password update validation schema in `src/lib/validations/user.ts`
+- [x] T021 [US2] Create ChangePasswordModal component for self-update in `src/app/portal/profile/components/ChangePasswordModal.tsx`
+- [x] T022 [US2] Create ResetPasswordModal component for admin use in `src/app/portal/users/components/ResetPasswordModal.tsx`
+- [x] T023 [US2] Add "Change Password" button to user profile page at `src/app/portal/profile/page.tsx`
+- [x] T024 [US2] Add "Reset Password" button to user management table in `src/app/portal/users/components/UserTable.tsx`
+- [x] T025 [US2] Integrate password hashing with bcryptjs in both server actions
+- [x] T026 [US2] Add validation for current password verification in `updateSelfPassword`
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently - password management is complete
 

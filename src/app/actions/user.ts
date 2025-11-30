@@ -139,3 +139,68 @@ export async function deleteUser(userId: string) {
         return { success: false, error: "Failed to delete user" };
     }
 }
+
+export async function updateSelfPassword(formData: z.infer<typeof PasswordUpdateSchema>) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return { success: false, error: "Unauthorized" };
+    }
+
+    const validatedFields = PasswordUpdateSchema.safeParse(formData);
+    if (!validatedFields.success) {
+        return { success: false, error: "Invalid fields" };
+    }
+
+    const { currentPassword, newPassword } = validatedFields.data;
+
+    try {
+        // Get current user with password
+        const user = await db.query.users.findFirst({
+            where: eq(users.id, session.user.id),
+        });
+
+        if (!user || !user.password) {
+            return { success: false, error: "User not found or password not set" };
+        }
+
+        // Verify current password
+        const passwordsMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!passwordsMatch) {
+            return { success: false, error: "Current password is incorrect" };
+        }
+
+        // Hash and update new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await db.update(users)
+            .set({ password: hashedPassword })
+            .where(eq(users.id, session.user.id));
+
+        revalidatePath("/portal/profile");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to update password:", error);
+        return { success: false, error: "Failed to update password" };
+    }
+}
+
+export async function adminResetPassword(userId: string, newPassword: string) {
+    await requireAdmin();
+
+    if (!newPassword || newPassword.length < 6) {
+        return { success: false, error: "Password must be at least 6 characters" };
+    }
+
+    try {
+        // Hash and update password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await db.update(users)
+            .set({ password: hashedPassword })
+            .where(eq(users.id, userId));
+
+        revalidatePath("/portal/users");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to reset password:", error);
+        return { success: false, error: "Failed to reset password" };
+    }
+}
