@@ -23,8 +23,8 @@ This document breaks down the implementation into executable tasks organized by 
 
 ### Tasks
 
-- [ ] T001 Verify NextAuth configuration in src/lib/auth.ts
-- [ ] T002 Verify database schema has users table in src/db/schema.ts
+- [x] T001 Verify NextAuth configuration in src/lib/auth.ts
+- [x] T002 Verify database schema has users table in src/db/schema.ts
 
 ## Phase 2: User Story 1 - Single Login Access to Portal (P1)
 
@@ -34,13 +34,13 @@ This document breaks down the implementation into executable tasks organized by 
 
 ### Tasks
 
-- [ ] T003 [US1] Update auth.config.ts to protect /portal, /smtp, and /pdf routes in src/lib/auth.config.ts
-- [ ] T004 [P] [US1] Create portal dashboard page at src/app/portal/page.tsx
-- [ ] T005 [P] [US1] Create portal layout with navigation in src/app/portal/layout.tsx
-- [ ] T006 [US1] Update login page to redirect to /portal on success in src/app/login/page.tsx
-- [ ] T007 [US1] Add logout button component in src/components/LogoutButton.tsx
-- [ ] T008 [US1] Update middleware matcher to include portal routes in middleware.ts
-- [ ] T009 [US1] Test login flow: valid credentials → portal access, invalid → error message
+- [x] T003 [US1] Update auth.config.ts to protect /, /portal, /smtp, and /pdf routes in src/lib/auth.config.ts
+- [x] T004 [P] [US1] Create portal dashboard page at src/app/portal/page.tsx
+- [x] T005 [P] [US1] Create portal layout with navigation in src/app/portal/layout.tsx
+- [x] T006 [US1] Update login page to redirect to / on success in src/app/login/page.tsx
+- [x] T007 [US1] Add logout button component in src/components/LogoutButton.tsx
+- [x] T008 [US1] Update middleware matcher to include portal routes in middleware.ts
+- [x] T009 [US1] Test login flow: valid credentials → portal access, invalid → error message
 
 ## Phase 3: User Story 2 - SMTP Portal Access (P2)
 
