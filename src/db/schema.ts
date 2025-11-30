@@ -5,6 +5,7 @@ import {
     primaryKey,
     integer,
     uuid,
+    boolean,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
 
@@ -15,6 +16,7 @@ export const users = pgTable("user", {
     emailVerified: timestamp("emailVerified", { mode: "date" }),
     image: text("image"),
     password: text("password"), // Optional because OAuth users won't have a password
+    isAdmin: boolean("isAdmin").default(false).notNull(),
 });
 
 export const accounts = pgTable(

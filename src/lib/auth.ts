@@ -22,7 +22,7 @@ async function getUser(email: string) {
 
 export const { auth, signIn, signOut, handlers } = NextAuth({
     ...authConfig,
-    adapter: DrizzleAdapter(db),
+    adapter: DrizzleAdapter(db) as any,
     session: { strategy: "jwt" },
     providers: [
         Credentials({
