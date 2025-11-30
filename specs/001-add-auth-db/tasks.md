@@ -42,11 +42,15 @@
 **Goal**: Enable persistent data storage with PostgreSQL and Drizzle.
 **Story**: As a developer, I want the application to connect to a persistent data store...
 
-- [ ] T008 [US2] Define `users` table schema in `src/db/schema.ts` matching data-model.md
-- [ ] T009 [US2] Generate initial migration using `drizzle-kit generate`
-- [ ] T010 [US2] Run migration to create tables in local database using `drizzle-kit migrate`
-- [ ] T011 [US2] Create a seed script `src/db/seed.ts` to insert a test user with a hashed password
-- [ ] T012 [US2] Add `seed` script to `package.json` and run it to verify DB connection and write access
+- [x] T008 [US2] Define `users` table schema in `src/db/schema.ts` matching data-model.md
+- [x] T009 [US2] Generate initial migration using `drizzle-kit generate`
+- [x] T010 [US2] Run migration to create tables in local database using `drizzle-kit migrate`
+- [x] T011 [US2] Create a seed script `src/db/seed.ts` to insert a test user with a hashed password
+- [x] T012 [US2] Add `seed` script to `package.json` and run it to verify DB connection and write access
+- [x] T012a [US2] Install `@auth/drizzle-adapter`
+- [x] T012b [US2] Update `src/db/schema.ts` with `accounts`, `sessions`, `verificationTokens` and update `users`
+- [x] T012c [US2] Update `src/lib/auth.ts` to use `DrizzleAdapter`
+- [x] T012d [US2] Regenerate and run migrations for new schema
 
 ## Phase 4: User Story 1 - User Login (P1)
 

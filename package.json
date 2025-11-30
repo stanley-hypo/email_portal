@@ -10,9 +10,11 @@
     "test": "jest --watch",
     "test:ci": "jest --ci",
     "typecheck": "tsc --noEmit",
-    "worker": "tsx src/workers/start.ts"
+    "worker": "tsx src/workers/start.ts",
+    "db:seed": "tsx src/db/seed.ts"
   },
   "dependencies": {
+    "@auth/drizzle-adapter": "^1.11.1",
     "@mantine/core": "^7.17.3",
     "@mantine/form": "^7.17.3",
     "@mantine/hooks": "^7.17.3",
@@ -38,6 +40,7 @@
     "@types/pg": "^8.15.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.2.3",
     "drizzle-kit": "^0.31.7",
     "eslint": "^9",
     "eslint-config-next": "15.2.4",
