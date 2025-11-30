@@ -33,9 +33,9 @@
 
 **Goal**: Establish core connections and directory structure.
 
-- [ ] T005 Create database connection client in `src/db/index.ts`
-- [ ] T006 Create auth configuration file in `src/lib/auth.ts` (basic NextAuth config structure)
-- [ ] T007 Create `src/lib/auth.config.ts` for edge-compatible auth configuration (if needed for middleware)
+- [x] T005 Create database connection client in `src/db/index.ts`
+- [x] T006 Create auth configuration file in `src/lib/auth.ts` (basic NextAuth config structure)
+- [x] T007 Create `src/lib/auth.config.ts` for edge-compatible auth configuration (if needed for middleware)
 
 ## Phase 3: User Story 2 - System Data Storage (P1)
 
