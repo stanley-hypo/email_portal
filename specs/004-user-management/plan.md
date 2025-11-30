@@ -1,13 +1,13 @@
-# Implementation Plan: [FEATURE]
+# Implementation Plan: User Management
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
+**Branch**: `004-user-management` | **Date**: 2025-11-30 | **Spec**: [spec.md](./spec.md)
+**Input**: Feature specification from `/specs/004-user-management/spec.md`
 
-**Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
+**Note**: This plan implements admin-only user management with CRUD operations, password management, and role-based access control.
 
 ## Summary
 
-[Extract from feature spec: primary requirement + technical approach from research]
+Implement a comprehensive user management system that allows administrators to create, read, update, and delete user accounts. The system includes password management capabilities (self-update and admin-reset), role-based access control using an `isAdmin` flag, and protection against edge cases like self-deletion and duplicate emails. Built using NextAuth.js v5 for authentication, Drizzle ORM for database operations, and Mantine components for a consistent UI.
 
 ## Technical Context
 
@@ -46,51 +46,38 @@ specs/[###-feature]/
 ```
 
 ### Source Code (repository root)
-<!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
--->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
 src/
-├── models/
-├── services/
-├── cli/
+├── app/
+│   ├── actions/
+│   │   └── user.ts              # User management server actions
+│   └── portal/
+│       ├── users/
+│       │   ├── page.tsx         # User management page
+│       │   └── components/
+│       │       ├── UserTable.tsx
+│       │       ├── CreateUserModal.tsx
+│       │       ├── EditUserModal.tsx
+│       │       └── ResetPasswordModal.tsx
+│       └── profile/
+│           ├── page.tsx          # User profile page
+│           └── components/
+│               └── ChangePasswordModal.tsx
+├── db/
+│   └── schema.ts                # Database schema (add isAdmin column)
 └── lib/
+    ├── auth.config.ts           # NextAuth config (update callbacks)
+    ├── auth-helpers.ts          # Admin authorization helpers
+    └── validations/
+        └── user.ts              # Zod validation schemas
 
 tests/
-├── contract/
-├── integration/
-└── unit/
-
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+└── integration/
+    └── user-management.test.ts  # Integration tests (optional)
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+**Structure Decision**: Using Next.js App Router structure with server actions pattern. All user management logic is centralized in `src/app/actions/user.ts` with UI components organized under `src/app/portal/`. Authentication helpers and validation schemas are in `src/lib/` for reusability across the application.
 
 ## Complexity Tracking
 
