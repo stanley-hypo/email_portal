@@ -78,6 +78,6 @@
 
 **Goal**: Finalize feature for release.
 
-- [ ] T023 Add error handling for database connection failures in `src/db/index.ts`
-- [ ] T024 Ensure all environment variables are documented in `README.md` or `.env.example`
-- [ ] T025 Run full manual test of Login -> Session -> Logout flow
+- [x] T023 Add error handling for database connection failures in `src/db/index.ts`
+- [x] T024 Ensure all environment variables are documented in `README.md` or `.env.example`
+- [x] T025 Run full manual test of Login -> Session -> Logout flow
