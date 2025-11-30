@@ -1,21 +1,19 @@
 import { NextResponse } from 'next/server';
 import { updateSmtpConfig, deleteSmtpConfig } from '@/utils/fileUtils';
 
-function checkAuth(request: Request) {
-  const authHeader = request.headers.get('authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return false;
-  }
-  const token = authHeader.split(' ')[1];
-  return token === process.env.ADMIN_PASSWORD;
-}
+import { auth } from "@/lib/auth";
+
+// ... (keep existing imports)
+
+// Remove checkAuth function
 
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    if (!checkAuth(request)) {
+    const session = await auth();
+    if (!session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -25,7 +23,7 @@ export async function PUT(
     const data = await request.json();
     const id = await params;
     const updatedConfig = updateSmtpConfig(id.id, data);
-    
+
     if (!updatedConfig) {
       return NextResponse.json(
         { error: 'Configuration not found' },
@@ -48,7 +46,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    if (!checkAuth(request)) {
+    const session = await auth();
+    if (!session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

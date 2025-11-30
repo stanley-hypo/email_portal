@@ -69,10 +69,10 @@
 **Goal**: Maintain user session across refreshes and allow logout.
 **Story**: As a user, I want my login session to persist...
 
-- [ ] T019 [US3] Verify session persists on page refresh (manual verification step)
-- [ ] T020 [US3] Add a Logout button component in `src/components/LogoutButton.tsx` (or similar) calling `signOut()`
-- [ ] T021 [US3] Integrate Logout button into the main layout or navigation bar
-- [ ] T022 [US3] Verify logout clears session and redirects to login
+- [x] T019 [US3] Verify session persists on page refresh (manual verification step)
+- [x] T020 [US3] Add a Logout button component in `src/components/LogoutButton.tsx` (or similar) calling `signOut()`
+- [x] T021 [US3] Integrate Logout button into the main layout or navigation bar
+- [x] T022 [US3] Verify logout clears session and redirects to login
 
 ## Phase 6: Polish & Cleanup
 

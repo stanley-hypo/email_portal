@@ -24,11 +24,9 @@ import {
 import { useForm } from '@mantine/form';
 import { IconCopy, IconEdit, IconKey, IconPlus, IconRefresh, IconTrash, IconX, IconFileTypePdf, IconCode, IconDownload } from '@tabler/icons-react';
 import { useEffect, useState, useCallback } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function PdfPage() {
-  const { authToken } = useAuth();
   const [configs, setConfigs] = useState<PdfConfig[]>([]);
   const [editingConfig, setEditingConfig] = useState<PdfConfig | null>(null);
   const [deletingConfig, setDeletingConfig] = useState<PdfConfig | null>(null);
@@ -195,11 +193,7 @@ export default function PdfPage() {
   const loadConfigs = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/pdf-configs', {
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-        },
-      });
+      const response = await fetch('/api/pdf-configs');
       if (!response.ok) {
         throw new Error('Failed to load configurations');
       }
@@ -210,13 +204,11 @@ export default function PdfPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [authToken]);
+  }, []); // FIX: Changed dependency array to empty
 
   useEffect(() => {
-    if (authToken) {
-      loadConfigs();
-    }
-  }, [authToken, loadConfigs]);
+    loadConfigs();
+  }, [loadConfigs]); // FIX: This line was already correct, no change needed based on instruction
 
   const handleSubmit = async (values: typeof form.values) => {
     try {
@@ -225,7 +217,6 @@ export default function PdfPage() {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`,
           },
           body: JSON.stringify(values),
         });
@@ -238,7 +229,6 @@ export default function PdfPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`,
           },
           body: JSON.stringify(values),
         });
@@ -286,9 +276,6 @@ export default function PdfPage() {
     try {
       const response = await fetch(`/api/pdf-configs/${deletingConfig.id}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-        },
       });
 
       if (!response.ok) {
@@ -312,7 +299,6 @@ export default function PdfPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`,
         },
         body: JSON.stringify({ authTokens: tokens }),
       });
@@ -445,7 +431,7 @@ export default function PdfPage() {
 
   const handleDownloadPostmanCollection = () => {
     if (!postmanToken) return;
-    
+
     const collection = generatePostmanCollection(postmanToken.token, postmanToken.config);
     const blob = new Blob([JSON.stringify(collection, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -466,7 +452,7 @@ export default function PdfPage() {
 
     try {
       const token = testingConfig.authTokens[0].token; // Use first available token
-      
+
       const response = await fetch('/api/html-to-pdf', {
         method: 'POST',
         headers: {
@@ -519,546 +505,546 @@ export default function PdfPage() {
         <Title order={1} mb="xl" ta="center">
           PDF Configuration Manager
         </Title>
-      
-      <Group justify="flex-end" mb="xl">
-        <Button
-          onClick={() => {
-            resetForm();
-            setIsFormModalOpen(true);
-          }}
+
+        <Group justify="flex-end" mb="xl">
+          <Button
+            onClick={() => {
+              resetForm();
+              setIsFormModalOpen(true);
+            }}
+          >
+            <IconPlus size={16} style={{ marginRight: 8 }} />
+            Add New Configuration
+          </Button>
+        </Group>
+
+        <Modal
+          opened={isFormModalOpen}
+          onClose={() => setIsFormModalOpen(false)}
+          title={editingConfig ? "Edit Configuration" : "Add New Configuration"}
+          size="lg"
         >
-          <IconPlus size={16} style={{ marginRight: 8 }} />
-          Add New Configuration
-        </Button>
-      </Group>
+          <form onSubmit={form.onSubmit(handleSubmit)}>
+            <Stack gap="md">
+              <TextInput
+                label="Name"
+                placeholder="Enter configuration name"
+                required
+                {...form.getInputProps('name')}
+              />
 
-      <Modal
-        opened={isFormModalOpen}
-        onClose={() => setIsFormModalOpen(false)}
-        title={editingConfig ? "Edit Configuration" : "Add New Configuration"}
-        size="lg"
-      >
-        <form onSubmit={form.onSubmit(handleSubmit)}>
+              <TagsInput
+                label="IP Whitelist (Optional)"
+                placeholder="Enter IP addresses (e.g., 192.168.1.100)"
+                description="Press Enter to add each IP address. Leave empty to allow all IPs."
+                {...form.getInputProps('ipWhitelist')}
+              />
+
+              <Checkbox
+                label="Active"
+                {...form.getInputProps('active', { type: 'checkbox' })}
+              />
+
+              <Group justify="flex-end" mt="md">
+                <Button
+                  variant="light"
+                  color="gray"
+                  onClick={() => setIsFormModalOpen(false)}
+                >
+                  <IconX size={16} style={{ marginRight: 8 }} />
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                >
+                  {editingConfig ? (
+                    <>
+                      <IconEdit size={16} style={{ marginRight: 8 }} />
+                      Update
+                    </>
+                  ) : (
+                    <>
+                      <IconPlus size={16} style={{ marginRight: 8 }} />
+                      Add Configuration
+                    </>
+                  )}
+                </Button>
+              </Group>
+            </Stack>
+          </form>
+        </Modal>
+
+        <Title order={2} mb="md">
+          Existing Configurations
+        </Title>
+
+        {isLoading ? (
+          <Group justify="center" py="xl">
+            <Loader size="lg" />
+          </Group>
+        ) : configs.length === 0 ? (
+          <Paper p="xl" radius="md" withBorder>
+            <Text ta="center" c="dimmed">
+              No PDF configurations found. Click Add New Configuration to create one.
+            </Text>
+          </Paper>
+        ) : (
+          <Grid>
+            {configs.map((config) => (
+              <Grid.Col key={config.id} span={{ base: 12, sm: 6, md: 6 }}>
+                <Card shadow="sm" padding="lg" radius="md" withBorder>
+                  <Group justify="space-between" mb="xs">
+                    <Title order={3}>{config.name}</Title>
+                    <Group>
+                      <Tooltip label="Test PDF Generation">
+                        <ActionIcon
+                          color="green"
+                          variant="light"
+                          onClick={() => {
+                            setTestingConfig(config);
+                            setIsTestModalOpen(true);
+                          }}
+                          disabled={!config.authTokens || config.authTokens.length === 0}
+                        >
+                          <IconFileTypePdf size={16} />
+                        </ActionIcon>
+                      </Tooltip>
+                      <Tooltip label="Manage Auth Tokens">
+                        <ActionIcon
+                          color="blue"
+                          variant="light"
+                          onClick={() => {
+                            setTokenModalConfig(config);
+                            setIsTokenModalOpen(true);
+                          }}
+                        >
+                          <IconKey size={16} />
+                        </ActionIcon>
+                      </Tooltip>
+                      <Tooltip label="Edit Configuration">
+                        <ActionIcon
+                          color="blue"
+                          variant="light"
+                          onClick={() => handleEdit(config)}
+                        >
+                          <IconEdit size={16} />
+                        </ActionIcon>
+                      </Tooltip>
+                      <Tooltip label="Delete Configuration">
+                        <ActionIcon
+                          color="red"
+                          variant="light"
+                          onClick={() => {
+                            setDeletingConfig(config);
+                            setIsDeleteModalOpen(true);
+                          }}
+                        >
+                          <IconTrash size={16} />
+                        </ActionIcon>
+                      </Tooltip>
+                    </Group>
+                  </Group>
+
+                  <Stack gap="xs">
+                    <Text size="sm" c="dimmed">
+                      IP Whitelist: {config.ipWhitelist.length > 0 ? config.ipWhitelist.join(', ') : 'All IPs allowed'}
+                    </Text>
+                    <Group gap="xs">
+                      <Badge color={config.active ? 'blue' : 'gray'}>
+                        {config.active ? 'Active' : 'Inactive'}
+                      </Badge>
+                      {config.ipWhitelist.length === 0 && (
+                        <Badge color="orange" variant="light">
+                          No IP restrictions
+                        </Badge>
+                      )}
+                    </Group>
+                    {config.authTokens && config.authTokens.length > 0 && (
+                      <Stack gap="xs" mt="xs">
+                        <Text size="sm" fw={500}>Auth Tokens ({config.authTokens.length}):</Text>
+                        <Stack gap="xs">
+                          {config.authTokens.map((tokenData, index) => (
+                            <Paper key={index} p="xs" radius="md" withBorder>
+                              <Stack gap="xs">
+                                {tokenData.name && (
+                                  <Text size="sm" fw={500}>{tokenData.name}</Text>
+                                )}
+                                <Group justify="space-between">
+                                  <Text size="sm" style={{ fontFamily: 'monospace' }}>
+                                    {tokenData.token}
+                                  </Text>
+                                  <Group>
+                                    <Tooltip label="Show Postman Example">
+                                      <ActionIcon
+                                        color="blue"
+                                        variant="light"
+                                        onClick={() => {
+                                          setPostmanToken({ token: tokenData.token, config });
+                                          setIsPostmanModalOpen(true);
+                                        }}
+                                      >
+                                        <IconCode size={16} />
+                                      </ActionIcon>
+                                    </Tooltip>
+                                    <Button
+                                      variant="light"
+                                      color="red"
+                                      size="xs"
+                                      onClick={() => {
+                                        const updatedTokens = config.authTokens.filter((_, i) => i !== index);
+                                        handleUpdateTokens(config.id, updatedTokens);
+                                      }}
+                                    >
+                                      Revoke
+                                    </Button>
+                                  </Group>
+                                </Group>
+                              </Stack>
+                            </Paper>
+                          ))}
+                        </Stack>
+                      </Stack>
+                    )}
+                  </Stack>
+                </Card>
+              </Grid.Col>
+            ))}
+          </Grid>
+        )}
+
+        <Modal
+          opened={isDeleteModalOpen}
+          onClose={() => {
+            setIsDeleteModalOpen(false);
+            setDeletingConfig(null);
+            setDeleteName('');
+            setDeleteError(undefined);
+          }}
+          title="Delete Configuration"
+          size="sm"
+        >
           <Stack gap="md">
+            <Text size="sm">
+              To delete this configuration, please enter the configuration name:
+            </Text>
+            <Text size="sm" fw={500}>
+              {deletingConfig?.name}
+            </Text>
             <TextInput
-              label="Name"
-              placeholder="Enter configuration name"
-              required
-              {...form.getInputProps('name')}
+              label="Confirm Name"
+              placeholder="Enter name to confirm deletion"
+              value={deleteName}
+              onChange={(e) => setDeleteName(e.target.value)}
+              error={deleteError}
             />
-            
-            <TagsInput
-              label="IP Whitelist (Optional)"
-              placeholder="Enter IP addresses (e.g., 192.168.1.100)"
-              description="Press Enter to add each IP address. Leave empty to allow all IPs."
-              {...form.getInputProps('ipWhitelist')}
-            />
-
-            <Checkbox
-              label="Active"
-              {...form.getInputProps('active', { type: 'checkbox' })}
-            />
-
             <Group justify="flex-end" mt="md">
               <Button
                 variant="light"
                 color="gray"
-                onClick={() => setIsFormModalOpen(false)}
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setDeletingConfig(null);
+                  setDeleteName('');
+                  setDeleteError(undefined);
+                }}
               >
-                <IconX size={16} style={{ marginRight: 8 }} />
                 Cancel
               </Button>
               <Button
-                type="submit"
+                color="red"
+                onClick={handleDelete}
+                disabled={deleteName !== deletingConfig?.name}
               >
-                {editingConfig ? (
-                  <>
-                    <IconEdit size={16} style={{ marginRight: 8 }} />
-                    Update
-                  </>
-                ) : (
-                  <>
-                    <IconPlus size={16} style={{ marginRight: 8 }} />
-                    Add Configuration
-                  </>
-                )}
+                Delete Configuration
               </Button>
             </Group>
           </Stack>
-        </form>
-      </Modal>
+        </Modal>
 
-      <Title order={2} mb="md">
-        Existing Configurations
-      </Title>
+        <Modal
+          opened={isTokenModalOpen}
+          onClose={() => {
+            setIsTokenModalOpen(false);
+            setTokenModalConfig(null);
+            setNewToken(null);
+            setTokenName('');
+          }}
+          title="Manage Auth Tokens"
+          size="md"
+        >
+          {tokenModalConfig && (
+            <Stack gap="md">
+              <Text size="sm">
+                Generate and manage auth tokens for {tokenModalConfig.name}
+              </Text>
 
-      {isLoading ? (
-        <Group justify="center" py="xl">
-          <Loader size="lg" />
-        </Group>
-      ) : configs.length === 0 ? (
-        <Paper p="xl" radius="md" withBorder>
-          <Text ta="center" c="dimmed">
-            No PDF configurations found. Click Add New Configuration to create one.
-          </Text>
-        </Paper>
-      ) : (
-        <Grid>
-          {configs.map((config) => (
-            <Grid.Col key={config.id} span={{ base: 12, sm: 6, md: 6 }}>
-              <Card shadow="sm" padding="lg" radius="md" withBorder>
-                <Group justify="space-between" mb="xs">
-                  <Title order={3}>{config.name}</Title>
-                  <Group>
-                    <Tooltip label="Test PDF Generation">
-                      <ActionIcon
-                        color="green"
-                        variant="light"
-                        onClick={() => {
-                          setTestingConfig(config);
-                          setIsTestModalOpen(true);
-                        }}
-                        disabled={!config.authTokens || config.authTokens.length === 0}
-                      >
-                        <IconFileTypePdf size={16} />
-                      </ActionIcon>
-                    </Tooltip>
-                    <Tooltip label="Manage Auth Tokens">
+              <Button
+                leftSection={<IconRefresh size={16} />}
+                onClick={() => {
+                  const token = generateToken();
+                  setNewToken({ token, name: '' });
+                  setTokenName('');
+                }}
+              >
+                Generate New Token
+              </Button>
+
+              {newToken && (
+                <Paper p="md" radius="md" withBorder>
+                  <Stack gap="xs">
+                    <Text size="sm" fw={500}>New Token Generated:</Text>
+                    <TextInput
+                      label="Token Name"
+                      placeholder="Enter a name for this token (e.g., Production API)"
+                      value={tokenName}
+                      onChange={(e) => setTokenName(e.target.value)}
+                    />
+                    <Group gap="xs">
+                      <Text size="sm" style={{ fontFamily: 'monospace' }}>{newToken.token}</Text>
                       <ActionIcon
                         color="blue"
                         variant="light"
                         onClick={() => {
-                          setTokenModalConfig(config);
-                          setIsTokenModalOpen(true);
+                          navigator.clipboard.writeText(newToken.token);
                         }}
                       >
-                        <IconKey size={16} />
+                        <IconCopy size={16} />
                       </ActionIcon>
-                    </Tooltip>
-                    <Tooltip label="Edit Configuration">
-                      <ActionIcon
-                        color="blue"
-                        variant="light"
-                        onClick={() => handleEdit(config)}
-                      >
-                        <IconEdit size={16} />
-                      </ActionIcon>
-                    </Tooltip>
-                    <Tooltip label="Delete Configuration">
-                      <ActionIcon
-                        color="red"
-                        variant="light"
-                        onClick={() => {
-                          setDeletingConfig(config);
-                          setIsDeleteModalOpen(true);
-                        }}
-                      >
-                        <IconTrash size={16} />
-                      </ActionIcon>
-                    </Tooltip>
-                  </Group>
-                </Group>
+                    </Group>
+                    <Text size="xs" c="dimmed">
+                      Make sure to copy this token now. You won&apos;t be able to see it again!
+                    </Text>
+                    <Button
+                      variant="light"
+                      color="blue"
+                      onClick={() => {
+                        if (tokenName.trim()) {
+                          const updatedTokens = [...(tokenModalConfig?.authTokens || []), { token: newToken.token, name: tokenName }];
+                          handleUpdateTokens(tokenModalConfig!.id, updatedTokens);
+                          setNewToken(null);
+                          setTokenName('');
+                        }
+                      }}
+                      disabled={!tokenName.trim()}
+                    >
+                      Save Token
+                    </Button>
+                  </Stack>
+                </Paper>
+              )}
 
+              {tokenModalConfig?.authTokens && tokenModalConfig.authTokens.length > 0 && (
                 <Stack gap="xs">
-                  <Text size="sm" c="dimmed">
-                    IP Whitelist: {config.ipWhitelist.length > 0 ? config.ipWhitelist.join(', ') : 'All IPs allowed'}
-                  </Text>
-                  <Group gap="xs">
-                    <Badge color={config.active ? 'blue' : 'gray'}>
-                      {config.active ? 'Active' : 'Inactive'}
-                    </Badge>
-                    {config.ipWhitelist.length === 0 && (
-                      <Badge color="orange" variant="light">
-                        No IP restrictions
-                      </Badge>
-                    )}
-                  </Group>
-                  {config.authTokens && config.authTokens.length > 0 && (
-                    <Stack gap="xs" mt="xs">
-                      <Text size="sm" fw={500}>Auth Tokens ({config.authTokens.length}):</Text>
-                      <Stack gap="xs">
-                        {config.authTokens.map((tokenData, index) => (
-                          <Paper key={index} p="xs" radius="md" withBorder>
-                            <Stack gap="xs">
-                              {tokenData.name && (
-                                <Text size="sm" fw={500}>{tokenData.name}</Text>
-                              )}
-                              <Group justify="space-between">
-                                <Text size="sm" style={{ fontFamily: 'monospace' }}>
-                                  {tokenData.token}
-                                </Text>
-                                <Group>
-                                  <Tooltip label="Show Postman Example">
-                                    <ActionIcon
-                                      color="blue"
-                                      variant="light"
-                                      onClick={() => {
-                                        setPostmanToken({ token: tokenData.token, config });
-                                        setIsPostmanModalOpen(true);
-                                      }}
-                                    >
-                                      <IconCode size={16} />
-                                    </ActionIcon>
-                                  </Tooltip>
-                                  <Button
-                                    variant="light"
-                                    color="red"
-                                    size="xs"
-                                    onClick={() => {
-                                      const updatedTokens = config.authTokens.filter((_, i) => i !== index);
-                                      handleUpdateTokens(config.id, updatedTokens);
-                                    }}
-                                  >
-                                    Revoke
-                                  </Button>
-                                </Group>
-                              </Group>
-                            </Stack>
-                          </Paper>
-                        ))}
-                      </Stack>
-                    </Stack>
-                  )}
+                  <Text size="sm" fw={500}>Existing Tokens:</Text>
+                  <Stack gap="xs">
+                    {tokenModalConfig.authTokens.map((tokenData, index) => (
+                      <Paper key={index} p="xs" radius="md" withBorder>
+                        <Stack gap="xs">
+                          {tokenData.name && (
+                            <Text size="sm" fw={500}>{tokenData.name}</Text>
+                          )}
+                          <Group justify="space-between">
+                            <Text size="sm" style={{ fontFamily: 'monospace' }}>
+                              {tokenData.token}
+                            </Text>
+                            <Group>
+                              <Tooltip label="Show Postman Example">
+                                <ActionIcon
+                                  color="blue"
+                                  variant="light"
+                                  onClick={() => {
+                                    setPostmanToken({ token: tokenData.token, config: tokenModalConfig });
+                                    setIsPostmanModalOpen(true);
+                                  }}
+                                >
+                                  <IconCode size={16} />
+                                </ActionIcon>
+                              </Tooltip>
+                              <Button
+                                variant="light"
+                                color="red"
+                                size="xs"
+                                onClick={() => {
+                                  const updatedTokens = tokenModalConfig.authTokens.filter((_, i) => i !== index);
+                                  handleUpdateTokens(tokenModalConfig.id, updatedTokens);
+                                }}
+                              >
+                                Revoke
+                              </Button>
+                            </Group>
+                          </Group>
+                        </Stack>
+                      </Paper>
+                    ))}
+                  </Stack>
                 </Stack>
-              </Card>
-            </Grid.Col>
-          ))}
-        </Grid>
-      )}
+              )}
+            </Stack>
+          )}
+        </Modal>
 
-      <Modal
-        opened={isDeleteModalOpen}
-        onClose={() => {
-          setIsDeleteModalOpen(false);
-          setDeletingConfig(null);
-          setDeleteName('');
-          setDeleteError(undefined);
-        }}
-        title="Delete Configuration"
-        size="sm"
-      >
-        <Stack gap="md">
-          <Text size="sm">
-            To delete this configuration, please enter the configuration name:
-          </Text>
-          <Text size="sm" fw={500}>
-            {deletingConfig?.name}
-          </Text>
-          <TextInput
-            label="Confirm Name"
-            placeholder="Enter name to confirm deletion"
-            value={deleteName}
-            onChange={(e) => setDeleteName(e.target.value)}
-            error={deleteError}
-          />
-          <Group justify="flex-end" mt="md">
+        <Modal
+          opened={isTestModalOpen}
+          onClose={() => {
+            setIsTestModalOpen(false);
+            setTestingConfig(null);
+          }}
+          title="Test PDF Generation"
+          size="xl"
+        >
+          {testingConfig && (
+            <Stack gap="md">
+              <Text size="sm">
+                Test PDF generation for <strong>{testingConfig.name}</strong>
+              </Text>
+
+              {testingConfig.authTokens && testingConfig.authTokens.length > 0 ? (
+                <>
+                  <Text size="xs" c="dimmed">
+                    Using token: {testingConfig.authTokens[0].name || 'Unnamed'} ({testingConfig.authTokens[0].token.substring(0, 8)}...)
+                  </Text>
+
+                  <Textarea
+                    label="HTML Content"
+                    placeholder="Enter HTML content to convert to PDF"
+                    value={testHtml}
+                    onChange={(e) => setTestHtml(e.target.value)}
+                    minRows={15}
+                    autosize
+                  />
+
+                  <Group justify="flex-end" mt="md">
+                    <Button
+                      variant="light"
+                      color="gray"
+                      onClick={() => {
+                        setIsTestModalOpen(false);
+                        setTestingConfig(null);
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      color="green"
+                      onClick={handleTestPdf}
+                      leftSection={<IconFileTypePdf size={16} />}
+                    >
+                      Generate PDF
+                    </Button>
+                  </Group>
+                </>
+              ) : (
+                <Text c="dimmed" ta="center" py="xl">
+                  No auth tokens available for this configuration. Please add a token first.
+                </Text>
+              )}
+            </Stack>
+          )}
+        </Modal>
+
+        <Modal
+          opened={isPostmanModalOpen}
+          onClose={() => {
+            setIsPostmanModalOpen(false);
+            setPostmanToken(null);
+          }}
+          title="Postman Example"
+          size="xl"
+        >
+          {postmanToken && (
+            <Stack gap="md">
+              <Text size="sm">
+                Here is how to use this token in Postman for PDF generation:
+              </Text>
+
+              <Button
+                variant="light"
+                onClick={() => setShowFormInputs(!showFormInputs)}
+                leftSection={<IconEdit size={16} />}
+              >
+                {showFormInputs ? 'Hide Form Inputs' : 'Show Form Inputs'}
+              </Button>
+
+              {showFormInputs && (
+                <Textarea
+                  label="HTML Content"
+                  placeholder="Enter HTML content to convert to PDF"
+                  value={postmanHtml}
+                  onChange={(e) => setPostmanHtml(e.target.value)}
+                  minRows={15}
+                  autosize
+                />
+              )}
+
+              <Paper p="md" radius="md" withBorder>
+                <Text size="sm" fw={500}>Request Details:</Text>
+                <Text size="sm" style={{ fontFamily: 'monospace' }}>
+                  POST /api/html-to-pdf
+                </Text>
+                <Text size="sm" fw={500} mt="md">Headers:</Text>
+                <Text size="sm" style={{ fontFamily: 'monospace' }}>
+                  Authorization: Bearer {postmanToken.token}
+                </Text>
+                <Text size="sm" style={{ fontFamily: 'monospace' }}>
+                  Content-Type: application/json
+                </Text>
+                <Text size="sm" fw={500} mt="md">Body (JSON):</Text>
+                <Text size="sm" style={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
+                  {JSON.stringify({
+                    html: postmanHtml.replace('{{DATE}}', new Date().toLocaleString()),
+                    filename: "test_document.pdf",
+                    options: {
+                      format: "A4",
+                      printBackground: true,
+                      margin: {
+                        top: "1cm",
+                        right: "1cm",
+                        bottom: "1cm",
+                        left: "1cm"
+                      }
+                    }
+                  }, null, 2)}
+                </Text>
+              </Paper>
+
+              <Paper p="md" radius="md" withBorder>
+                <Text size="sm" fw={500}>Available Options:</Text>
+                <Stack gap="xs" mt="xs">
+                  <Text size="sm">• <strong>html</strong> (required): HTML content to convert</Text>
+                  <Text size="sm">• <strong>filename</strong> (optional): Output PDF filename</Text>
+                  <Text size="sm">• <strong>options.format</strong>: Page format (A4, A3, Letter, etc.)</Text>
+                  <Text size="sm">• <strong>options.printBackground</strong>: Include background colors/images</Text>
+                  <Text size="sm">• <strong>options.margin</strong>: Page margins (top, right, bottom, left)</Text>
+                </Stack>
+              </Paper>
+
+              <Text size="sm" c="dimmed">
+                The API returns a PDF file as binary response. In Postman, you can save the response to file.
+              </Text>
+            </Stack>
+          )}
+          <Group justify="flex-end" mt="md" style={{ position: 'sticky', bottom: 0, background: 'white', padding: '16px', borderTop: '1px solid #eee' }}>
+            <Button
+              variant="light"
+              color="blue"
+              onClick={handleDownloadPostmanCollection}
+              leftSection={<IconDownload size={16} />}
+            >
+              Download Postman Collection
+            </Button>
             <Button
               variant="light"
               color="gray"
               onClick={() => {
-                setIsDeleteModalOpen(false);
-                setDeletingConfig(null);
-                setDeleteName('');
-                setDeleteError(undefined);
+                setIsPostmanModalOpen(false);
+                setPostmanToken(null);
               }}
             >
-              Cancel
-            </Button>
-            <Button
-              color="red"
-              onClick={handleDelete}
-              disabled={deleteName !== deletingConfig?.name}
-            >
-              Delete Configuration
+              Close
             </Button>
           </Group>
-        </Stack>
-      </Modal>
-
-      <Modal
-        opened={isTokenModalOpen}
-        onClose={() => {
-          setIsTokenModalOpen(false);
-          setTokenModalConfig(null);
-          setNewToken(null);
-          setTokenName('');
-        }}
-        title="Manage Auth Tokens"
-        size="md"
-      >
-        {tokenModalConfig && (
-          <Stack gap="md">
-            <Text size="sm">
-              Generate and manage auth tokens for {tokenModalConfig.name}
-            </Text>
-            
-            <Button
-              leftSection={<IconRefresh size={16} />}
-              onClick={() => {
-                const token = generateToken();
-                setNewToken({ token, name: '' });
-                setTokenName('');
-              }}
-            >
-              Generate New Token
-            </Button>
-
-            {newToken && (
-              <Paper p="md" radius="md" withBorder>
-                <Stack gap="xs">
-                  <Text size="sm" fw={500}>New Token Generated:</Text>
-                  <TextInput
-                    label="Token Name"
-                    placeholder="Enter a name for this token (e.g., Production API)"
-                    value={tokenName}
-                    onChange={(e) => setTokenName(e.target.value)}
-                  />
-                  <Group gap="xs">
-                    <Text size="sm" style={{ fontFamily: 'monospace' }}>{newToken.token}</Text>
-                    <ActionIcon
-                      color="blue"
-                      variant="light"
-                      onClick={() => {
-                        navigator.clipboard.writeText(newToken.token);
-                      }}
-                    >
-                      <IconCopy size={16} />
-                    </ActionIcon>
-                  </Group>
-                  <Text size="xs" c="dimmed">
-                    Make sure to copy this token now. You won&apos;t be able to see it again!
-                  </Text>
-                  <Button
-                    variant="light"
-                    color="blue"
-                    onClick={() => {
-                      if (tokenName.trim()) {
-                        const updatedTokens = [...(tokenModalConfig?.authTokens || []), { token: newToken.token, name: tokenName }];
-                        handleUpdateTokens(tokenModalConfig!.id, updatedTokens);
-                        setNewToken(null);
-                        setTokenName('');
-                      }
-                    }}
-                    disabled={!tokenName.trim()}
-                  >
-                    Save Token
-                  </Button>
-                </Stack>
-              </Paper>
-            )}
-
-            {tokenModalConfig?.authTokens && tokenModalConfig.authTokens.length > 0 && (
-              <Stack gap="xs">
-                <Text size="sm" fw={500}>Existing Tokens:</Text>
-                <Stack gap="xs">
-                  {tokenModalConfig.authTokens.map((tokenData, index) => (
-                    <Paper key={index} p="xs" radius="md" withBorder>
-                      <Stack gap="xs">
-                        {tokenData.name && (
-                          <Text size="sm" fw={500}>{tokenData.name}</Text>
-                        )}
-                        <Group justify="space-between">
-                          <Text size="sm" style={{ fontFamily: 'monospace' }}>
-                            {tokenData.token}
-                          </Text>
-                          <Group>
-                            <Tooltip label="Show Postman Example">
-                              <ActionIcon
-                                color="blue"
-                                variant="light"
-                                onClick={() => {
-                                  setPostmanToken({ token: tokenData.token, config: tokenModalConfig });
-                                  setIsPostmanModalOpen(true);
-                                }}
-                              >
-                                <IconCode size={16} />
-                              </ActionIcon>
-                            </Tooltip>
-                            <Button
-                              variant="light"
-                              color="red"
-                              size="xs"
-                              onClick={() => {
-                                const updatedTokens = tokenModalConfig.authTokens.filter((_, i) => i !== index);
-                                handleUpdateTokens(tokenModalConfig.id, updatedTokens);
-                              }}
-                            >
-                              Revoke
-                            </Button>
-                          </Group>
-                        </Group>
-                      </Stack>
-                    </Paper>
-                  ))}
-                </Stack>
-              </Stack>
-            )}
-          </Stack>
-        )}
-      </Modal>
-
-      <Modal
-        opened={isTestModalOpen}
-        onClose={() => {
-          setIsTestModalOpen(false);
-          setTestingConfig(null);
-        }}
-        title="Test PDF Generation"
-        size="xl"
-      >
-        {testingConfig && (
-          <Stack gap="md">
-            <Text size="sm">
-              Test PDF generation for <strong>{testingConfig.name}</strong>
-            </Text>
-            
-            {testingConfig.authTokens && testingConfig.authTokens.length > 0 ? (
-              <>
-                <Text size="xs" c="dimmed">
-                  Using token: {testingConfig.authTokens[0].name || 'Unnamed'} ({testingConfig.authTokens[0].token.substring(0, 8)}...)
-                </Text>
-                
-                <Textarea
-                  label="HTML Content"
-                  placeholder="Enter HTML content to convert to PDF"
-                  value={testHtml}
-                  onChange={(e) => setTestHtml(e.target.value)}
-                  minRows={15}
-                  autosize
-                />
-
-                <Group justify="flex-end" mt="md">
-                  <Button
-                    variant="light"
-                    color="gray"
-                    onClick={() => {
-                      setIsTestModalOpen(false);
-                      setTestingConfig(null);
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    color="green"
-                    onClick={handleTestPdf}
-                    leftSection={<IconFileTypePdf size={16} />}
-                  >
-                    Generate PDF
-                  </Button>
-                </Group>
-              </>
-            ) : (
-              <Text c="dimmed" ta="center" py="xl">
-                No auth tokens available for this configuration. Please add a token first.
-              </Text>
-            )}
-          </Stack>
-        )}
-      </Modal>
-
-      <Modal
-        opened={isPostmanModalOpen}
-        onClose={() => {
-          setIsPostmanModalOpen(false);
-          setPostmanToken(null);
-        }}
-        title="Postman Example"
-        size="xl"
-      >
-        {postmanToken && (
-          <Stack gap="md">
-            <Text size="sm">
-              Here is how to use this token in Postman for PDF generation:
-            </Text>
-
-            <Button
-              variant="light"
-              onClick={() => setShowFormInputs(!showFormInputs)}
-              leftSection={<IconEdit size={16} />}
-            >
-              {showFormInputs ? 'Hide Form Inputs' : 'Show Form Inputs'}
-            </Button>
-
-            {showFormInputs && (
-              <Textarea
-                label="HTML Content"
-                placeholder="Enter HTML content to convert to PDF"
-                value={postmanHtml}
-                onChange={(e) => setPostmanHtml(e.target.value)}
-                minRows={15}
-                autosize
-              />
-            )}
-
-            <Paper p="md" radius="md" withBorder>
-              <Text size="sm" fw={500}>Request Details:</Text>
-              <Text size="sm" style={{ fontFamily: 'monospace' }}>
-                POST /api/html-to-pdf
-              </Text>
-              <Text size="sm" fw={500} mt="md">Headers:</Text>
-              <Text size="sm" style={{ fontFamily: 'monospace' }}>
-                Authorization: Bearer {postmanToken.token}
-              </Text>
-              <Text size="sm" style={{ fontFamily: 'monospace' }}>
-                Content-Type: application/json
-              </Text>
-              <Text size="sm" fw={500} mt="md">Body (JSON):</Text>
-              <Text size="sm" style={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
-                {JSON.stringify({
-                  html: postmanHtml.replace('{{DATE}}', new Date().toLocaleString()),
-                  filename: "test_document.pdf",
-                  options: {
-                    format: "A4",
-                    printBackground: true,
-                    margin: {
-                      top: "1cm",
-                      right: "1cm",
-                      bottom: "1cm",
-                      left: "1cm"
-                    }
-                  }
-                }, null, 2)}
-              </Text>
-            </Paper>
-
-            <Paper p="md" radius="md" withBorder>
-              <Text size="sm" fw={500}>Available Options:</Text>
-              <Stack gap="xs" mt="xs">
-                <Text size="sm">• <strong>html</strong> (required): HTML content to convert</Text>
-                <Text size="sm">• <strong>filename</strong> (optional): Output PDF filename</Text>
-                <Text size="sm">• <strong>options.format</strong>: Page format (A4, A3, Letter, etc.)</Text>
-                <Text size="sm">• <strong>options.printBackground</strong>: Include background colors/images</Text>
-                <Text size="sm">• <strong>options.margin</strong>: Page margins (top, right, bottom, left)</Text>
-              </Stack>
-            </Paper>
-
-            <Text size="sm" c="dimmed">
-              The API returns a PDF file as binary response. In Postman, you can save the response to file.
-            </Text>
-          </Stack>
-        )}
-        <Group justify="flex-end" mt="md" style={{ position: 'sticky', bottom: 0, background: 'white', padding: '16px', borderTop: '1px solid #eee' }}>
-          <Button
-            variant="light"
-            color="blue"
-            onClick={handleDownloadPostmanCollection}
-            leftSection={<IconDownload size={16} />}
-          >
-            Download Postman Collection
-          </Button>
-          <Button
-            variant="light"
-            color="gray"
-            onClick={() => {
-              setIsPostmanModalOpen(false);
-              setPostmanToken(null);
-            }}
-          >
-            Close
-          </Button>
-        </Group>
-      </Modal>
-    </Container>
+        </Modal>
+      </Container>
     </ProtectedRoute>
   );
 }

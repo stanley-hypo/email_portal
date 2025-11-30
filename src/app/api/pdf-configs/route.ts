@@ -21,21 +21,19 @@ async function writePdfConfigs(configs: PdfConfig[]): Promise<void> {
   await fs.writeFile(PDF_CONFIG_FILE, JSON.stringify(configs, null, 2));
 }
 
-// Helper function to verify auth token
-function verifyAuth(request: NextRequest): boolean {
-  const authorization = request.headers.get('authorization');
-  if (!authorization || !authorization.startsWith('Bearer ')) {
-    return false;
-  }
-  
-  const token = authorization.substring(7);
-  return token === process.env.ADMIN_PASSWORD;
-}
+import { auth } from "@/lib/auth";
+
+// ... (keep existing imports)
+
+// Remove verifyAuth function
 
 export async function GET(request: NextRequest) {
-  if (!verifyAuth(request)) {
+  const session = await auth();
+  if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  // ... (keep existing code)
 
   try {
     const configs = await readPdfConfigs();
@@ -48,8 +46,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   console.log('PDF POST request received');
-  
-  if (!verifyAuth(request)) {
+
+  const session = await auth();
+  if (!session) {
     console.log('PDF POST: Auth failed');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -72,7 +71,7 @@ export async function POST(request: NextRequest) {
 
     const configs = await readPdfConfigs();
     console.log('PDF POST: Current configs count:', configs.length);
-    
+
     const newConfig: PdfConfig = {
       id: Date.now().toString(),
       name,
@@ -88,7 +87,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(newConfig, { status: 201 });
   } catch (error) {
     console.error('Error creating PDF configuration:', error);
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Failed to create configuration',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });

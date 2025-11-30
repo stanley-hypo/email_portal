@@ -3,7 +3,7 @@
 import { MantineProvider, AppShell } from '@mantine/core';
 import '@mantine/core/styles.css';
 import Navigation from '@/components/Navigation';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { SessionProvider } from "next-auth/react";
 
 export default function ClientLayout({
   children,
@@ -12,7 +12,7 @@ export default function ClientLayout({
 }) {
   return (
     <MantineProvider>
-      <AuthProvider>
+      <SessionProvider>
         <AppShell
           header={{ height: 60 }}
           padding="md"
@@ -22,7 +22,7 @@ export default function ClientLayout({
             {children}
           </AppShell.Main>
         </AppShell>
-      </AuthProvider>
+      </SessionProvider>
     </MantineProvider>
   );
 } 

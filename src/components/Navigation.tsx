@@ -1,25 +1,22 @@
 'use client';
 
 import { AppShell, Group, Button, Title } from '@mantine/core';
-import { IconMail, IconFileTypePdf, IconHome, IconLogout } from '@tabler/icons-react';
+import { IconMail, IconFileTypePdf, IconHome } from '@tabler/icons-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSession } from "next-auth/react";
+import { LogoutButton } from "./LogoutButton";
 
 export default function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
-  const { isAuthenticated, logout } = useAuth();
+  const { status } = useSession();
+  const isAuthenticated = status === "authenticated";
 
   const menuItems = [
     { path: '/', label: 'Home', icon: IconHome },
     { path: '/smtp', label: 'SMTP', icon: IconMail },
     { path: '/pdf', label: 'PDF', icon: IconFileTypePdf },
   ];
-
-  const handleLogout = () => {
-    logout();
-    router.push('/login');
-  };
 
   return (
     <AppShell.Header>
@@ -42,16 +39,7 @@ export default function Navigation() {
               </Button>
             );
           })}
-          {isAuthenticated && (
-            <Button
-              variant="light"
-              color="red"
-              leftSection={<IconLogout size={16} />}
-              onClick={handleLogout}
-            >
-              Logout
-            </Button>
-          )}
+          {isAuthenticated && <LogoutButton />}
         </Group>
       </Group>
     </AppShell.Header>
