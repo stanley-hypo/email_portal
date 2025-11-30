@@ -24,10 +24,10 @@
 
 **Goal**: Initialize the project with necessary libraries and configurations.
 
-- [ ] T001 Install dependencies: `drizzle-orm`, `postgres`, `next-auth@beta`, `bcryptjs` in `package.json`
-- [ ] T002 Install dev dependencies: `drizzle-kit`, `@types/pg`, `@types/bcryptjs` in `package.json`
-- [ ] T003 [P] Create `drizzle.config.ts` at project root with PostgreSQL configuration
-- [ ] T004 [P] Add `DATABASE_URL` and `AUTH_SECRET` to `.env` (and `.env.example` if exists)
+- [x] T001 Install dependencies: `drizzle-orm`, `postgres`, `next-auth@beta`, `bcryptjs` in `package.json`
+- [x] T002 Install dev dependencies: `drizzle-kit`, `@types/pg`, `@types/bcryptjs` in `package.json`
+- [x] T003 [P] Create `drizzle.config.ts` at project root with PostgreSQL configuration
+- [x] T004 [P] Add `DATABASE_URL` and `AUTH_SECRET` to `.env` (and `.env.example` if exists)
 
 ## Phase 2: Foundational
 
