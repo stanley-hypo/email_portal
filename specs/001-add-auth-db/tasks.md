@@ -57,12 +57,12 @@
 **Goal**: Enable users to log in with email and password.
 **Story**: As a user, I want to log in to the application using my email and password...
 
-- [ ] T013 [US1] Implement `authorize` logic in `src/lib/auth.ts` using `bcryptjs` to verify credentials against DB
-- [ ] T014 [US1] Create NextAuth route handler in `src/app/api/auth/[...nextauth]/route.ts`
-- [ ] T015 [US1] Update `src/app/login/page.tsx` to use a client-side form calling `signIn('credentials', ...)`
-- [ ] T016 [US1] Create `middleware.ts` to protect routes (matcher for `/dashboard`, `/settings`, and other protected paths)
+- [x] T013 [US1] Implement `authorize` logic in `src/lib/auth.ts` using `bcryptjs` to verify credentials against DB
+- [x] T014 [US1] Create NextAuth route handler in `src/app/api/auth/[...nextauth]/route.ts`
+- [x] T015 [US1] Update `src/app/login/page.tsx` to use a client-side form calling `signIn('credentials', ...)`
+- [x] T016 [US1] Create `middleware.ts` to protect routes (matcher for `/dashboard`, `/settings`, and other protected paths)
 - [ ] T017 [US1] Verify login flow: Success redirects to home, failure shows error on login page
-- [ ] T018 [US1] Create integration test for login flow (success/failure) in `src/tests/integration/auth.test.ts`
+- [x] T018 [US1] Create integration test for login flow (success/failure) in `src/tests/integration/auth.test.ts`
 
 ## Phase 5: User Story 3 - Session Persistence (P2)
 
