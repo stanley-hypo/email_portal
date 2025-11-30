@@ -1,7 +1,7 @@
 'use client';
 
 import { AppShell, Group, Button, Title } from '@mantine/core';
-import { IconMail, IconFileTypePdf, IconHome } from '@tabler/icons-react';
+import { IconMail, IconFileTypePdf, IconHome, IconUsers } from '@tabler/icons-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession } from "next-auth/react";
 import { LogoutButton } from "./LogoutButton";
@@ -9,14 +9,20 @@ import { LogoutButton } from "./LogoutButton";
 export default function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const isAuthenticated = status === "authenticated";
+  const isAdmin = session?.user?.isAdmin === true;
 
   const menuItems = [
     { path: '/', label: 'Home', icon: IconHome },
     { path: '/smtp', label: 'SMTP', icon: IconMail },
     { path: '/pdf', label: 'PDF', icon: IconFileTypePdf },
   ];
+
+  // Add User Management link for admins only
+  if (isAdmin) {
+    menuItems.push({ path: '/portal/users', label: 'User Management', icon: IconUsers });
+  }
 
   return (
     <AppShell.Header>

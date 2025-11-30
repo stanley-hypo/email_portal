@@ -1,15 +1,44 @@
 "use client";
 
-import { Container, Title, Group, Button, Text } from "@mantine/core";
+import { Container, Title, Group, Button, Text, Loader, Center } from "@mantine/core";
 import { UserTable } from "./components/UserTable";
 import { CreateUserModal } from "./components/CreateUserModal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { IconPlus } from "@tabler/icons-react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
-import { requireAdmin } from "@/lib/auth-helpers";
+export default function UserManagementPage() {
+    const { data: session, status } = useSession();
+    const router = useRouter();
 
-export default async function UserManagementPage() {
-    await requireAdmin();
+    useEffect(() => {
+        if (status === "loading") return;
+        
+        if (status === "unauthenticated") {
+            router.push("/login");
+            return;
+        }
+
+        if (session && !session.user?.isAdmin) {
+            router.push("/portal/users/error");
+            return;
+        }
+    }, [session, status, router]);
+
+    if (status === "loading") {
+        return (
+            <Container size="xl" py="xl">
+                <Center>
+                    <Loader size="lg" />
+                </Center>
+            </Container>
+        );
+    }
+
+    if (!session?.user?.isAdmin) {
+        return null; // Will redirect
+    }
 
     return <UserManagementContent />;
 }

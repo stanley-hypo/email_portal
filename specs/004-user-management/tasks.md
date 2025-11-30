@@ -98,12 +98,12 @@
 
 ### Implementation for User Story 3
 
-- [ ] T027 [US3] Add isAdmin check middleware to user management routes in `src/middleware.ts` or route handler
-- [ ] T028 [P] [US3] Add server-side authorization checks to all admin-only server actions
-- [ ] T029 [US3] Add UI-level conditional rendering based on isAdmin status in navigation
-- [ ] T030 [US3] Add redirect logic for non-admin users attempting to access `/portal/users`
-- [ ] T031 [US3] Add 403 error page at `src/app/portal/users/error.tsx` for unauthorized access
-- [ ] T032 [US3] Test that regular users cannot call admin server actions directly
+- [x] T027 [US3] Add isAdmin check middleware to user management routes in `src/middleware.ts` or route handler
+- [x] T028 [P] [US3] Add server-side authorization checks to all admin-only server actions
+- [x] T029 [US3] Add UI-level conditional rendering based on isAdmin status in navigation
+- [x] T030 [US3] Add redirect logic for non-admin users attempting to access `/portal/users`
+- [x] T031 [US3] Add 403 error page at `src/app/portal/users/error.tsx` for unauthorized access
+- [x] T032 [US3] Test that regular users cannot call admin server actions directly
 
 **Checkpoint**: All user stories should now be independently functional - access control is enforced
 
@@ -113,14 +113,14 @@
 
 **Purpose**: Improvements that affect multiple user stories and edge case handling
 
-- [ ] T033 [P] Add duplicate email validation in `createUser` and `updateUser` actions
-- [ ] T034 [P] Add last admin protection in `updateUser` to prevent removing last admin status (edge case: system must always have at least one admin)
-- [ ] T035 Add confirmation dialog for user deletion with warning message
-- [ ] T036 Add loading states to all forms and modals
-- [ ] T037 [P] Add user activity logging for audit trail
-- [ ] T038 [P] Add comprehensive error messages for all edge cases
-- [ ] T039 Run quickstart.md validation to verify all features work end-to-end
-- [ ] T040 [P] Update documentation with screenshots and usage examples
+- [x] T033 [P] Add duplicate email validation in `createUser` and `updateUser` actions
+- [x] T034 [P] Add last admin protection in `updateUser` to prevent removing last admin status (edge case: system must always have at least one admin)
+- [x] T035 Add confirmation dialog for user deletion with warning message
+- [x] T036 Add loading states to all forms and modals
+- [x] T037 [P] Add user activity logging for audit trail
+- [x] T038 [P] Add comprehensive error messages for all edge cases
+- [x] T039 Run quickstart.md validation to verify all features work end-to-end
+- [x] T040 [P] Update documentation with screenshots and usage examples
 
 ---
 

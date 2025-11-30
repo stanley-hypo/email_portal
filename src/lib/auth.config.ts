@@ -19,11 +19,26 @@ export const authConfig = {
         },
         authorized({ auth, request: { nextUrl } }) {
             const isLoggedIn = !!auth?.user;
+            const isAdmin = auth?.user?.isAdmin === true;
             const isProtected =
                 nextUrl.pathname === "/" ||
                 nextUrl.pathname.startsWith("/portal") ||
                 nextUrl.pathname.startsWith("/smtp") ||
                 nextUrl.pathname.startsWith("/pdf");
+
+            // Admin-only routes
+            const isAdminRoute = nextUrl.pathname.startsWith("/portal/users");
+
+            if (isAdminRoute) {
+                if (!isLoggedIn) {
+                    return false; // Redirect to login
+                }
+                if (!isAdmin) {
+                    // Redirect non-admin users to home or show 403
+                    return Response.redirect(new URL("/portal/users/error", nextUrl));
+                }
+                return true;
+            }
 
             if (isProtected) {
                 if (isLoggedIn) return true;
