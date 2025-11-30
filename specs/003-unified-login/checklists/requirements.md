@@ -2,7 +2,7 @@
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning  
 **Created**: 2025-11-30  
-**Feature**: [spec.md](file:///Users/stanley/PhpstormProjects/email_portal/specs/002-unified-login/spec.md)
+**Feature**: [spec.md](file:///Users/stanley/PhpstormProjects/email_portal/specs/003-unified-login/spec.md)
 
 ## Content Quality
 

@@ -1,6 +1,6 @@
 # Feature Specification: Unified Login with Portal Access
 
-**Feature Branch**: `002-unified-login`  
+**Feature Branch**: `003-unified-login`  
 **Created**: 2025-11-30  
 **Status**: Draft  
 **Input**: User description: "取代現有login，login 後可以使用 smtp or PDF 入邊portal 功能"
