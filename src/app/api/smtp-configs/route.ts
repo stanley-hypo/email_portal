@@ -1,18 +1,16 @@
 import { addSmtpConfig, readSmtpConfigs } from '@/utils/fileUtils';
 import { NextResponse } from 'next/server';
 
-function checkAuth(request: Request) {
-  const authHeader = request.headers.get('authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return false;
-  }
-  const token = authHeader.split(' ')[1];
-  return token === process.env.ADMIN_PASSWORD;
-}
+import { auth } from "@/lib/auth";
+
+// ... (keep existing imports)
+
+// Remove checkAuth function
 
 export async function GET(request: Request) {
   try {
-    if (!checkAuth(request)) {
+    const session = await auth();
+    if (!session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -32,7 +30,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    if (!checkAuth(request)) {
+    const session = await auth();
+    if (!session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

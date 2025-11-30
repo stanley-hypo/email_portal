@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSession } from "next-auth/react";
 import { Loader, Center, Container } from '@mantine/core';
 
 interface ProtectedRouteProps {
@@ -10,16 +10,18 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated } = useAuth();
+  const { status } = useSession();
+  const isAuthenticated = status === "authenticated";
+  const isLoading = status === "loading";
   const router = useRouter();
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (status === "unauthenticated") {
       router.push('/login');
     }
-  }, [isAuthenticated, router]);
+  }, [status, router]);
 
-  if (!isAuthenticated) {
+  if (isLoading || status === "unauthenticated") {
     return (
       <Container size="lg" py="xl">
         <Center>

@@ -28,7 +28,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
     ports:
-      - "5432:5432"
+      - "25432:5432"
     networks:
       - app-network
     restart: always
@@ -36,7 +36,7 @@ services:
   pgadmin:
     image: dpage/pgadmin4
     ports:
-      - "8081:80"
+      - "28081:80"
     environment:
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
@@ -48,7 +48,7 @@ services:
   redis:
     image: redis:alpine
     ports:
-      - "6379:6379"
+      - "26379:6379"
     networks:
       - app-network
     volumes:
@@ -57,7 +57,7 @@ services:
   redisinsight:
     image: redislabs/redisinsight:latest
     ports:
-      - "5540:5540"
+      - "25540:5540"
     volumes:
       - redisinsight_data:/db
     depends_on:
@@ -67,7 +67,7 @@ services:
 
 networks:
   app-network:
-    name: masterportal_app-network
+    name: emailportal_app-network
     driver: bridge
 
 volumes:

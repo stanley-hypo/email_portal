@@ -3,25 +3,31 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 23000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "test": "jest --watch",
     "test:ci": "jest --ci",
     "typecheck": "tsc --noEmit",
-    "worker": "tsx src/workers/start.ts"
+    "worker": "tsx src/workers/start.ts",
+    "db:seed": "tsx src/db/seed.ts"
   },
   "dependencies": {
+    "@auth/drizzle-adapter": "^1.11.1",
     "@mantine/core": "^7.17.3",
     "@mantine/form": "^7.17.3",
     "@mantine/hooks": "^7.17.3",
     "@mantine/modals": "^7.17.3",
     "@tabler/icons-react": "^3.31.0",
     "@types/nodemailer": "^6.4.17",
+    "bcryptjs": "^3.0.3",
     "bullmq": "^5.46.0",
+    "drizzle-orm": "^0.44.7",
     "next": "15.2.2",
+    "next-auth": "^5.0.0-beta.30",
     "nodemailer": "^6.10.0",
+    "pg": "^8.16.3",
     "puppeteer": "^24.16.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
@@ -29,13 +35,18 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^3.0.0",
     "@types/node": "^20",
+    "@types/pg": "^8.15.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.2.3",
+    "drizzle-kit": "^0.31.7",
     "eslint": "^9",
     "eslint-config-next": "15.2.4",
     "tailwindcss": "^4",
     "tsx": "^4.20.6",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.0.14"
   }
 }

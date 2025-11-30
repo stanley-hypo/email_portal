@@ -1,167 +1,80 @@
-'use client';
+"use client";
 
-import { useAuth } from '@/contexts/AuthContext';
-import {
-  Alert,
-  Box,
-  Button,
-  Center,
-  Container,
-  Paper,
-  PasswordInput,
-  Stack,
-  Text,
-  Title
-} from '@mantine/core';
-import { IconLock, IconLogin } from '@tabler/icons-react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { Button, TextInput, PasswordInput, Container, Title, Paper, Text } from "@mantine/core";
 
 export default function LoginPage() {
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | undefined>();
-  const [isLoading, setIsLoading] = useState(false);
-  const { login, isAuthenticated } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isPending, setIsPending] = useState(false);
+  const { status } = useSession();
   const router = useRouter();
 
-  // Redirect if already authenticated
   useEffect(() => {
-    if (isAuthenticated) {
-      router.push('/');
+    if (status === "authenticated") {
+      router.push("/");
     }
-  }, [isAuthenticated, router]);
+  }, [status, router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  if (status === "loading" || status === "authenticated") {
+    return null;
+  }
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!password.trim()) {
-      setError('Please enter a password');
-      return;
-    }
+    setIsPending(true);
+    setError("");
 
-    setIsLoading(true);
-    setError(undefined);
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
 
-    try {
-      const success = await login(password);
-      if (success) {
-        router.push('/');
-      } else {
-        setError('Invalid password. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error during login:', error);
-      setError('An error occurred during login. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleSubmit(e as React.FormEvent);
+    if (result?.error) {
+      setError("Invalid credentials.");
+      setIsPending(false);
+    } else {
+      router.push("/");
     }
   };
 
   return (
-    <Box
-      style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '20px'
-      }}
-    >
-      <Container size="xs">
-        <Paper
-          radius="lg"
-          p="xl"
-          shadow="xl"
-          style={{
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)'
-          }}
-        >
-          <Stack gap="lg" ta="center">
-            {/* Logo/Icon */}
-            <Center>
-              <Box
-                style={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '20px'
-                }}
-              >
-                <IconLock size={40} color="white" />
-              </Box>
-            </Center>
+    <Container size={420} my={40}>
+      <Title ta="center">Welcome back!</Title>
 
-            {/* Title */}
-            <Stack gap="xs" ta="center">
-              <Title order={1} c="dark" fw={700}>
-                API Portal
-              </Title>
-              <Text size="lg" c="dimmed">
-                Hypothesis and Idea Business Solution Limited
-              </Text>
-              <Text size="sm" c="dimmed">
-                Please enter your password to access the portal
-              </Text>
-            </Stack>
-
-            {/* Error Alert */}
-            {error && (
-              <Alert color="red" variant="light">
-                {error}
-              </Alert>
-            )}
-
-            {/* Login Form */}
-            <form onSubmit={handleSubmit}>
-              <Stack gap="md">
-                <PasswordInput
-                  label="Password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  required
-                  size="md"
-                  leftSection={<IconLock size={18} />}
-                  disabled={isLoading}
-                />
-
-                <Button
-                  type="submit"
-                  size="md"
-                  loading={isLoading}
-                  leftSection={<IconLogin size={18} />}
-                  style={{
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    border: 'none'
-                  }}
-                  fullWidth
-                >
-                  {isLoading ? 'Signing in...' : 'Sign In'}
-                </Button>
-              </Stack>
-            </form>
-
-            {/* Footer */}
-            <Text size="xs" c="dimmed" ta="center" mt="lg">
-              Secure access to email and PDF configuration management
+      <Paper withBorder shadow="md" p={30} mt={30} radius="md">
+        <form onSubmit={handleSubmit}>
+          <TextInput
+            label="Email"
+            placeholder="you@mantine.dev"
+            name="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <PasswordInput
+            label="Password"
+            placeholder="Your password"
+            name="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            mt="md"
+          />
+          <Button fullWidth mt="xl" type="submit" loading={isPending}>
+            Sign in
+          </Button>
+          {error && (
+            <Text c="red" size="sm" mt="sm">
+              {error}
             </Text>
-          </Stack>
-        </Paper>
-      </Container>
-    </Box>
+          )}
+        </form>
+      </Paper>
+    </Container>
   );
 }

@@ -21,22 +21,18 @@ async function writePdfConfigs(configs: PdfConfig[]): Promise<void> {
   await fs.writeFile(PDF_CONFIG_FILE, JSON.stringify(configs, null, 2));
 }
 
-// Helper function to verify auth token
-function verifyAuth(request: NextRequest): boolean {
-  const authorization = request.headers.get('authorization');
-  if (!authorization || !authorization.startsWith('Bearer ')) {
-    return false;
-  }
-  
-  const token = authorization.substring(7);
-  return token === process.env.ADMIN_PASSWORD;
-}
+import { auth } from "@/lib/auth";
+
+// ... (keep existing imports)
+
+// Remove verifyAuth function
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!verifyAuth(request)) {
+  const session = await auth();
+  if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -76,7 +72,8 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!verifyAuth(request)) {
+  const session = await auth();
+  if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

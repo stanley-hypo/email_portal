@@ -1,0 +1,29 @@
+# email_portal Development Guidelines
+
+Auto-generated from all feature plans. Last updated: 2025-11-30
+
+## Active Technologies
+
+- TypeScript 5+ (Node.js) (001-add-auth-db)
+
+## Project Structure
+
+```text
+src/
+tests/
+```
+
+## Commands
+
+npm test && npm run lint
+
+## Code Style
+
+TypeScript 5+ (Node.js): Follow standard conventions
+
+## Recent Changes
+
+- 001-add-auth-db: Added TypeScript 5+ (Node.js)
+
+<!-- MANUAL ADDITIONS START -->
+<!-- MANUAL ADDITIONS END -->
