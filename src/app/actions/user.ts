@@ -8,7 +8,7 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import { UserSchema, PasswordUpdateSchema } from "@/lib/validations/user";
-import { isAdmin, requireAdmin } from "@/lib/auth-helpers";
+import { requireAdmin } from "@/lib/auth-helpers";
 import { userActivityLogger } from "@/utils/userActivityLogger";
 
 // Actions will be implemented here

@@ -7,7 +7,7 @@ import { auth } from "@/lib/auth";
 
 // Remove checkAuth function
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const session = await auth();
     if (!session) {

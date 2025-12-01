@@ -27,7 +27,7 @@ import { auth } from "@/lib/auth";
 
 // Remove verifyAuth function
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   const session = await auth();
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

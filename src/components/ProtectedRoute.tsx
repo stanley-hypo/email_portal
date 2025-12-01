@@ -11,7 +11,6 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { status } = useSession();
-  const isAuthenticated = status === "authenticated";
   const isLoading = status === "loading";
   const router = useRouter();
 

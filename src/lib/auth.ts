@@ -22,6 +22,7 @@ async function getUser(email: string) {
 
 export const { auth, signIn, signOut, handlers } = NextAuth({
     ...authConfig,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     adapter: DrizzleAdapter(db) as any,
     session: { strategy: "jwt" },
     providers: [

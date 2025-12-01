@@ -42,7 +42,7 @@ export function EditUserModal({ user, opened, onClose }: EditUserModalProps) {
             email: user.email,
             isAdmin: user.isAdmin,
         });
-    }, [user]);
+    }, [user, form]);
 
     const handleSubmit = async (values: typeof form.values) => {
         setLoading(true);
