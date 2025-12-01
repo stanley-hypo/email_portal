@@ -57,3 +57,5 @@ pdf-config.json
 *.log
 # Agentic Coding
 .agent/
+
+drizzle/*
