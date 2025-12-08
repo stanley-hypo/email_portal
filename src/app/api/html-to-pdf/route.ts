@@ -3,6 +3,7 @@ import puppeteer, { Browser, Page } from 'puppeteer';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { PdfConfig } from '@/types/smtp';
+import { logUsageEvent } from '@/utils/usageLogger';
 
 const PDF_CONFIG_FILE = path.join(process.cwd(), 'pdf-config.json');
 
@@ -133,6 +134,16 @@ export async function POST(request: NextRequest) {
     await browser.close();
     
     console.log('PDF generated successfully, size:', pdfBuffer.length);
+
+    // Log download event
+    await logUsageEvent({
+      recordId: config.id,
+      recordType: "pdf",
+      eventType: "pdf_download",
+      actorEmail: undefined,
+      source: "api",
+      metadata: { configName: config.name, filename },
+    });
 
     // Set response headers for PDF download
     const headers = new Headers();

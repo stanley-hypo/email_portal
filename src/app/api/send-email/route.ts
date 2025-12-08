@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Queue } from 'bullmq';
 import { readSmtpConfigs } from '@/utils/fileUtils';
 import { SmtpConfig } from '@/types/smtp';
+import { logUsageEvent } from '@/utils/usageLogger';
 
 // Create a BullMQ queue for email processing
 const emailQueue = new Queue('email-queue', {
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Add email to queue
-    await emailQueue.add('send-email', {
+    const job = await emailQueue.add('send-email', {
       config,
       to,
       subject,
@@ -71,9 +72,20 @@ export async function POST(request: NextRequest) {
       attachments,
     });
 
+    // Log queue event
+    await logUsageEvent({
+      recordId: job.id?.toString() || `${Date.now()}`,
+      recordType: "email",
+      eventType: "email_sent",
+      recipientEmail: to,
+      status: "queued",
+      source: "api",
+      metadata: { subject, fromEmail, fromName: config.fromName },
+    });
+
     return NextResponse.json({ 
       message: 'Email queued successfully',
-      queueId: Date.now().toString()
+      queueId: job.id?.toString() || null
     });
 
   } catch (error) {

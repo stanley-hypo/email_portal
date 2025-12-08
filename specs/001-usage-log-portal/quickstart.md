@@ -34,4 +34,5 @@ Ensure admin/compliance/support roles exist in the auth system so authorized use
 - Apply filters for a date range and event type; ensure results and total counts update.  
 - Export after filtering; verify CSV rows and columns match the on-screen results.  
 - Attempt access with an unauthorized user; expect 403 or redirect with no data leakage.
+- After investigations, capture support/compliance feedback (e.g., note success/blocked in your support log or survey) to measure self-serve resolution rate.
 
