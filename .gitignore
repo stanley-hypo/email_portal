@@ -41,7 +41,7 @@ yarn-error.log*
 next-env.d.ts
 
 # drizzle
-src/db/drizzle/*
+#src/db/drizzle/*
 
 # vscode
 /.vscode/
@@ -57,5 +57,3 @@ pdf-config.json
 *.log
 # Agentic Coding
 .agent/
-
-drizzle/*

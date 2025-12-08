@@ -1,7 +1,7 @@
 'use client';
 
 import { AppShell, Group, Button, Title } from '@mantine/core';
-import { IconMail, IconFileTypePdf, IconHome, IconUsers } from '@tabler/icons-react';
+import { IconMail, IconFileTypePdf, IconHome, IconUsers, IconListDetails } from '@tabler/icons-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession } from "next-auth/react";
 import { LogoutButton } from "./LogoutButton";
@@ -21,7 +21,10 @@ export default function Navigation() {
 
   // Add User Management link for admins only
   if (isAdmin) {
-    menuItems.push({ path: '/portal/users', label: 'User Management', icon: IconUsers });
+    menuItems.push(
+      { path: '/portal/logs', label: 'Logs', icon: IconListDetails },
+      { path: '/portal/users', label: 'User Management', icon: IconUsers }
+    );
   }
 
   return (
