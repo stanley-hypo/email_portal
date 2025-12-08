@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Alert,
   Badge,
@@ -48,6 +48,20 @@ interface LogsResponse {
   sort?: string;
 }
 
+type QueryOverrides = Partial<{
+  recordId: string;
+  recordType: RecordType | '';
+  eventTypes: string[];
+  actor: string;
+  recipient: string;
+  status: string;
+  from: string;
+  to: string;
+  page: number;
+  pageSize: number;
+  sort: string;
+}>;
+
 function formatDate(value?: string | null) {
   if (!value) return '-';
   return new Date(value).toLocaleString();
@@ -84,30 +98,40 @@ export default function LogsPage() {
   const [total, setTotal] = useState(0);
   const [sort, setSort] = useState('createdAt:desc');
   const [exporting, setExporting] = useState(false);
-
-  const canQuery = useMemo(
-    () => recordId.trim().length > 0 || recipient.trim().length > 0,
-    [recordId, recipient]
-  );
   const isStale =
     lastUpdated && Date.now() - new Date(lastUpdated).getTime() > 5 * 60 * 1000;
 
-  const fetchLogs = async () => {
+  const buildParams = (overrides: QueryOverrides = {}) => {
+    const params = new URLSearchParams();
+    const recordIdValue = (overrides.recordId ?? recordId).trim();
+    const recipientValue = (overrides.recipient ?? recipient).trim();
+    const actorValue = (overrides.actor ?? actor).trim();
+    const statusValue = (overrides.status ?? status).trim();
+    const pageValue = overrides.page ?? page;
+    const pageSizeValue = overrides.pageSize ?? pageSize;
+    const sortValue = overrides.sort ?? sort;
+
+    if (recordIdValue) params.set('recordId', recordIdValue);
+    if (overrides.recordType ?? recordType)
+      params.set('recordType', (overrides.recordType ?? recordType) as string);
+    if ((overrides.eventTypes ?? eventTypes).length)
+      params.set('eventType', (overrides.eventTypes ?? eventTypes).join(','));
+    if (actorValue) params.set('actor', actorValue);
+    if (recipientValue) params.set('recipient', recipientValue);
+    if (statusValue) params.set('status', statusValue);
+    if (overrides.from ?? from) params.set('from', overrides.from ?? from);
+    if (overrides.to ?? to) params.set('to', overrides.to ?? to);
+    params.set('page', `${pageValue}`);
+    params.set('pageSize', `${pageSizeValue}`);
+    params.set('sort', sortValue);
+    return params;
+  };
+
+  const fetchLogs = async (overrides: QueryOverrides = {}) => {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams();
-      if (recordId.trim()) params.set('recordId', recordId.trim());
-      if (recordType) params.set('recordType', recordType);
-      if (eventTypes.length) params.set('eventType', eventTypes.join(','));
-      if (actor.trim()) params.set('actor', actor.trim());
-      if (recipient.trim()) params.set('recipient', recipient.trim());
-      if (status.trim()) params.set('status', status.trim());
-      if (from) params.set('from', from);
-      if (to) params.set('to', to);
-      params.set('page', `${page}`);
-      params.set('pageSize', `${pageSize}`);
-      params.set('sort', sort);
+      const params = buildParams(overrides);
       const res = await fetch(`/api/logs?${params.toString()}`);
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -118,6 +142,9 @@ export default function LogsPage() {
       setLastUpdated(data.lastUpdated);
       setRetentionDays(data.retentionDays);
       setTotal(data.total);
+      setPage(data.page);
+      setPageSize(data.pageSize);
+      setSort(data.sort || overrides.sort || sort);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load logs');
     } finally {
@@ -125,32 +152,39 @@ export default function LogsPage() {
     }
   };
 
+  useEffect(() => {
+    void fetchLogs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const applyQuickSearch = () => {
     if (!quickSearch.trim()) return;
-    if (quickSearch.includes('@')) {
-      setRecipient(quickSearch.trim());
-      setRecordId('');
-    } else {
-      setRecordId(quickSearch.trim());
-    }
-    setPage(1);
+    const nextPage = 1;
+    const value = quickSearch.trim();
+    const nextRecipient = value.includes('@') ? value : '';
+    const nextRecordId = value.includes('@') ? '' : value;
+    setRecipient(nextRecipient);
+    setRecordId(nextRecordId);
+    setPage(nextPage);
+    void fetchLogs({ page: nextPage, recipient: nextRecipient, recordId: nextRecordId });
+  };
+
+  const handleViewLogs = () => {
+    const nextPage = 1;
+    setPage(nextPage);
+    void fetchLogs({ page: nextPage });
+  };
+
+  const handlePageChange = (nextPage: number) => {
+    setPage(nextPage);
+    void fetchLogs({ page: nextPage });
   };
 
   const handleExport = async () => {
     setExporting(true);
     setError(null);
     try {
-      const params = new URLSearchParams();
-      if (recordId.trim()) params.set('recordId', recordId.trim());
-      if (recordType) params.set('recordType', recordType);
-      if (eventTypes.length) params.set('eventType', eventTypes.join(','));
-      if (actor.trim()) params.set('actor', actor.trim());
-      if (recipient.trim()) params.set('recipient', recipient.trim());
-      if (status.trim()) params.set('status', status.trim());
-      if (from) params.set('from', from);
-      if (to) params.set('to', to);
-
-      const res = await fetch(`/api/logs/export?${params.toString()}`);
+      const res = await fetch(`/api/logs/export?${buildParams().toString()}`);
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.message || data.error || 'Failed to export logs');
@@ -180,8 +214,10 @@ export default function LogsPage() {
             <Button
               variant="light"
               leftSection={<IconRefresh size={16} />}
-              onClick={fetchLogs}
-              disabled={!canQuery || loading}
+              onClick={() => {
+                void fetchLogs();
+              }}
+              disabled={loading}
             >
               Refresh
             </Button>
@@ -291,13 +327,13 @@ export default function LogsPage() {
                 min={1}
                 max={100}
               />
-              <Button onClick={fetchLogs} disabled={!canQuery || loading}>
+              <Button onClick={handleViewLogs} disabled={loading}>
                 View Logs
               </Button>
               <Button
                 variant="light"
                 onClick={handleExport}
-                disabled={!canQuery || exporting}
+                disabled={exporting}
               >
                 {exporting ? 'Exporting…' : 'Export CSV'}
               </Button>
@@ -351,7 +387,7 @@ export default function LogsPage() {
               <Pagination
                 total={Math.max(1, Math.ceil(total / pageSize))}
                 value={page}
-                onChange={(p) => setPage(p)}
+                onChange={(p) => handlePageChange(p)}
               />
             </Group>
             <Table highlightOnHover withTableBorder>
