@@ -6,6 +6,9 @@ import {
     integer,
     uuid,
     boolean,
+    pgEnum,
+    jsonb,
+    index,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
 
@@ -62,5 +65,56 @@ export const verificationTokens = pgTable(
         compositePk: primaryKey({
             columns: [verificationToken.identifier, verificationToken.token],
         }),
+    })
+);
+
+// Usage logging
+export const recordTypeEnum = pgEnum("record_type_enum", ["pdf", "email"]);
+
+export const eventTypeEnum = pgEnum("event_type_enum", [
+    "pdf_view",
+    "pdf_download",
+    "pdf_print",
+    "email_sent",
+    "email_delivered",
+    "email_opened",
+    "email_bounced",
+    "email_failed",
+]);
+
+export const usageLogs = pgTable(
+    "usage_logs",
+    {
+        id: uuid("id").defaultRandom().primaryKey(),
+        recordId: text("record_id").notNull(),
+        recordType: recordTypeEnum("record_type").notNull(),
+        eventType: eventTypeEnum("event_type").notNull(),
+        actorId: uuid("actor_id"),
+        actorEmail: text("actor_email"),
+        recipientEmail: text("recipient_email"),
+        status: text("status"),
+        source: text("source"),
+        metadata: jsonb("metadata").default({}).$type<Record<string, unknown>>(),
+        createdAt: timestamp("created_at", { withTimezone: true })
+            .defaultNow()
+            .notNull(),
+        ingestedAt: timestamp("ingested_at", { withTimezone: true })
+            .defaultNow()
+            .notNull(),
+    },
+    (usageLogs) => ({
+        recordIdx: index("usage_logs_record_idx").on(
+            usageLogs.recordType,
+            usageLogs.recordId,
+            usageLogs.createdAt
+        ),
+        createdIdx: index("usage_logs_created_idx").on(usageLogs.createdAt),
+        eventIdx: index("usage_logs_event_idx").on(
+            usageLogs.eventType,
+            usageLogs.recordType
+        ),
+        recipientIdx: index("usage_logs_recipient_idx").on(
+            usageLogs.recipientEmail
+        ),
     })
 );

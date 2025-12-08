@@ -1,0 +1,15 @@
+node_modules/
+.next/
+out/
+build/
+dist/
+coverage/
+logs/
+*.log
+.git/
+.vercel/
+.agent/
+.env*
+drizzle/
+src/db/drizzle/
+

@@ -2,6 +2,7 @@ import { Worker, Job } from 'bullmq';
 import nodemailer from 'nodemailer';
 import { logger } from '@/utils/logger';
 import type { EmailJobPayload } from '@/types/email';
+import { logUsageEvent } from '@/utils/usageLogger';
 
 // Create email worker
 const worker = new Worker('email-queue', async (job: Job<EmailJobPayload>) => {
@@ -51,6 +52,15 @@ const worker = new Worker('email-queue', async (job: Job<EmailJobPayload>) => {
       subject,
       messageId: info.messageId,
     });
+    await logUsageEvent({
+      recordId: job.id?.toString() || info.messageId || `${Date.now()}`,
+      recordType: "email",
+      eventType: "email_delivered",
+      recipientEmail: to,
+      status: "delivered",
+      source: "worker",
+      metadata: { subject, messageId: info.messageId, fromEmail, fromName },
+    });
     
     return { success: true, messageId: info.messageId };
   } catch (error) {
@@ -83,10 +93,22 @@ worker.on('completed', (job: Job<EmailJobPayload>) => {
     recipient: job.data.to,
     subject: job.data.subject,
   });
+  // Emit delivered status (already logged in main handler) to ensure completion listener also captured.
+  void logUsageEvent({
+    recordId: job.id?.toString() || `${Date.now()}`,
+    recordType: "email",
+    eventType: "email_delivered",
+    recipientEmail: job.data.to,
+    status: "delivered",
+    source: "worker",
+    metadata: { subject: job.data.subject, attemptsMade: job.attemptsMade },
+  }).catch(() => {
+    // swallow logging errors to avoid affecting worker completion
+  });
 });
 
 // Handle failed jobs
-worker.on('failed', (job: Job<EmailJobPayload> | undefined, err: Error) => {
+worker.on('failed', async (job: Job<EmailJobPayload> | undefined, err: Error) => {
   if (job) {
     logger.error(`[Worker] ✗ Email job ${job.id} FAILED`, {
       jobId: job.id,
@@ -96,6 +118,19 @@ worker.on('failed', (job: Job<EmailJobPayload> | undefined, err: Error) => {
       attemptsMade: job.attemptsMade,
       error: err.message,
       stack: err.stack,
+    });
+    await logUsageEvent({
+      recordId: job?.id?.toString() || `${Date.now()}`,
+      recordType: "email",
+      eventType: "email_failed",
+      recipientEmail: job?.data.to,
+      status: "failed",
+      source: "worker",
+      metadata: {
+        subject: job?.data.subject,
+        error: err.message,
+        attemptsMade: job?.attemptsMade,
+      },
     });
   } else {
     logger.error(`[Worker] ✗ Email job FAILED (no job info)`, {

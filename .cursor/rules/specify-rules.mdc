@@ -5,6 +5,8 @@ Auto-generated from all feature plans. Last updated: 2025-11-30
 ## Active Technologies
 - TypeScript 5.x + Next.js 15 (App Router), NextAuth.js v5, Drizzle ORM, Tailwind CSS, Mantine (004-user-management)
 - PostgreSQL (via Drizzle) (004-user-management)
+- TypeScript 5.x, Node.js 20+ + Next.js 15.2.6 (App Router), Mantine 7.x + Tailwind 4 for UI, NextAuth.js v5 (beta), Drizzle ORM, BullMQ/Nodemailer for email processing, Puppeteer for PDF generation (001-usage-log-portal)
+- PostgreSQL (via Drizzle) for log persistence (001-usage-log-portal)
 
 - TypeScript 5+ (Node.js) (001-add-auth-db)
 
@@ -24,6 +26,7 @@ npm test && npm run lint
 TypeScript 5+ (Node.js): Follow standard conventions
 
 ## Recent Changes
+- 001-usage-log-portal: Added TypeScript 5.x, Node.js 20+ + Next.js 15.2.6 (App Router), Mantine 7.x + Tailwind 4 for UI, NextAuth.js v5 (beta), Drizzle ORM, BullMQ/Nodemailer for email processing, Puppeteer for PDF generation
 - 004-user-management: Added TypeScript 5.x + Next.js 15 (App Router), NextAuth.js v5, Drizzle ORM, Tailwind CSS, Mantine
 
 - 001-add-auth-db: Added TypeScript 5+ (Node.js)
