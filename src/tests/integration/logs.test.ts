@@ -78,8 +78,12 @@ describe("/api/logs filters", () => {
         );
         const res = await getLogs(req);
         expect(res.status).toBe(200);
-        const data = await res.json();
-        expect(data.items.every((i: any) => i.recipientEmail?.includes("user"))).toBe(
+        const data = (await res.json()) as {
+            items: { recipientEmail?: string | null }[];
+        };
+        expect(
+            data.items.every((i) => i.recipientEmail?.includes("user"))
+        ).toBe(
             true
         );
     });

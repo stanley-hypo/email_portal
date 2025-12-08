@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Alert,
   Badge,
@@ -21,7 +21,7 @@ import {
 } from '@mantine/core';
 import { IconAlertCircle, IconRefresh } from '@tabler/icons-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { RecordType, EVENT_TYPES } from '@/types/usageLogs';
+import { RecordType } from '@/types/usageLogs';
 
 interface UsageLog {
   id: string;
@@ -72,7 +72,6 @@ export default function LogsPage() {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [retentionDays, setRetentionDays] = useState<number | null>(null);
-  const [now, setNow] = useState<number>(Date.now());
   const [eventTypes, setEventTypes] = useState<string[]>([]);
   const [actor, setActor] = useState('');
   const [recipient, setRecipient] = useState('');
@@ -125,12 +124,6 @@ export default function LogsPage() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    // No auto-fetch without recordId; users must scope a record for audit
-    const t = setInterval(() => setNow(Date.now()), 60_000);
-    return () => clearInterval(t);
-  }, []);
 
   const applyQuickSearch = () => {
     if (!quickSearch.trim()) return;
