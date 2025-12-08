@@ -3,22 +3,24 @@ import { updateSmtpConfig, deleteSmtpConfig } from '@/utils/fileUtils';
 
 import { auth } from "@/lib/auth";
 
-// ... (keep existing imports)
-
-// Remove checkAuth function
+async function requireAdminSession() {
+  const session = await auth();
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  if (!session.user?.isAdmin) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+  return session;
+}
 
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const authResult = await requireAdminSession();
+    if (authResult instanceof NextResponse) return authResult;
 
     const data = await request.json();
     const id = await params;
@@ -46,13 +48,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const authResult = await requireAdminSession();
+    if (authResult instanceof NextResponse) return authResult;
 
     const id = await params;
     const deleted = deleteSmtpConfig(id.id);
@@ -71,4 +68,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-} 
+}

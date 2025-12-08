@@ -4,6 +4,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { PdfConfig } from '@/types/smtp';
 import { logUsageEvent } from '@/utils/usageLogger';
+import { timingSafeEqual } from 'crypto';
 
 const PDF_CONFIG_FILE = path.join(process.cwd(), 'pdf-config.json');
 
@@ -42,12 +43,68 @@ function getClientIp(request: NextRequest): string {
   return '127.0.0.1';
 }
 
+type RateLimitState = { count: number; resetAt: number };
+const pdfTokenRateLimits = new Map<string, RateLimitState>();
+const PDF_LIMIT = Math.max(
+  1,
+  Number(process.env.PDF_API_RATE_LIMIT_MAX ?? 60)
+);
+const PDF_WINDOW_MS = Math.max(
+  1_000,
+  Number(process.env.PDF_API_RATE_LIMIT_WINDOW_MS ?? 60_000)
+);
+
+function tokensMatch(provided: string, stored: string) {
+  if (provided.length !== stored.length) return false;
+  try {
+    return timingSafeEqual(Buffer.from(provided), Buffer.from(stored));
+  } catch {
+    return false;
+  }
+}
+
+function consumeRateLimit(token: string) {
+  const now = Date.now();
+  const existing = pdfTokenRateLimits.get(token);
+  if (!existing || existing.resetAt <= now) {
+    const fresh = { count: 1, resetAt: now + PDF_WINDOW_MS };
+    pdfTokenRateLimits.set(token, fresh);
+    return { ok: true, limit: PDF_LIMIT, remaining: PDF_LIMIT - 1, resetAt: fresh.resetAt };
+  }
+
+  if (existing.count >= PDF_LIMIT) {
+    const retryAfterSec = Math.max(0, Math.ceil((existing.resetAt - now) / 1000));
+    const response = NextResponse.json(
+      { error: 'Rate limit exceeded. Please retry later.' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': `${retryAfterSec}`,
+          'X-RateLimit-Limit': `${PDF_LIMIT}`,
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': `${existing.resetAt}`,
+        },
+      }
+    );
+    return { ok: false, response };
+  }
+
+  existing.count += 1;
+  pdfTokenRateLimits.set(token, existing);
+  return {
+    ok: true,
+    limit: PDF_LIMIT,
+    remaining: PDF_LIMIT - existing.count,
+    resetAt: existing.resetAt,
+  };
+}
+
 export async function POST(request: NextRequest) {
   console.log('HTML to PDF request received');
   
   try {
     // Get authorization token from header
-    const authToken = request.headers.get('Authorization')?.replace('Bearer ', '');
+    const authToken = request.headers.get('Authorization')?.replace('Bearer ', '').trim();
     if (!authToken) {
       console.log('HTML to PDF: No auth token provided');
       return NextResponse.json(
@@ -55,6 +112,10 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    // Rate limit per token
+    const rate = consumeRateLimit(authToken);
+    if (!rate.ok) return rate.response;
 
     // Get request body
     const body = await request.json();
@@ -76,7 +137,7 @@ export async function POST(request: NextRequest) {
     
     // Find the configuration that contains the authToken
     const config = configs.find((cfg: PdfConfig) => 
-      cfg.authTokens?.some((token: { token: string; name: string }) => token.token === authToken)
+      cfg.authTokens?.some((token: { token: string; name: string }) => tokensMatch(authToken, token.token))
     );
 
     if (!config) {
@@ -155,6 +216,10 @@ export async function POST(request: NextRequest) {
     } else {
       headers.set('Content-Disposition', `attachment; filename="document_${Date.now()}.pdf"`);
     }
+
+    headers.set('X-RateLimit-Limit', `${rate.limit}`);
+    headers.set('X-RateLimit-Remaining', `${rate.remaining}`);
+    headers.set('X-RateLimit-Reset', `${rate.resetAt}`);
 
     return new NextResponse(pdfBuffer, {
       status: 200,

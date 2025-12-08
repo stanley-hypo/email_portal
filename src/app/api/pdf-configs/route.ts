@@ -23,17 +23,20 @@ async function writePdfConfigs(configs: PdfConfig[]): Promise<void> {
 
 import { auth } from "@/lib/auth";
 
-// ... (keep existing imports)
-
-// Remove verifyAuth function
-
-export async function GET() {
+async function requireAdminSession() {
   const session = await auth();
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  if (!session.user?.isAdmin) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+  return session;
+}
 
-  // ... (keep existing code)
+export async function GET() {
+  const authResult = await requireAdminSession();
+  if (authResult instanceof NextResponse) return authResult;
 
   try {
     const configs = await readPdfConfigs();
@@ -47,10 +50,10 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   console.log('PDF POST request received');
 
-  const session = await auth();
-  if (!session) {
+  const authResult = await requireAdminSession();
+  if (authResult instanceof NextResponse) {
     console.log('PDF POST: Auth failed');
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return authResult;
   }
 
   try {

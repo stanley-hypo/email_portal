@@ -3,19 +3,21 @@ import { NextResponse } from 'next/server';
 
 import { auth } from "@/lib/auth";
 
-// ... (keep existing imports)
-
-// Remove checkAuth function
+async function requireAdminSession() {
+  const session = await auth();
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  if (!session.user?.isAdmin) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+  return session;
+}
 
 export async function GET() {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const authResult = await requireAdminSession();
+    if (authResult instanceof NextResponse) return authResult;
 
     const configs = readSmtpConfigs();
     return NextResponse.json(configs);
@@ -30,13 +32,8 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const authResult = await requireAdminSession();
+    if (authResult instanceof NextResponse) return authResult;
 
     const data = await request.json();
     const newConfig = addSmtpConfig(data);
@@ -48,4 +45,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-} 
+}

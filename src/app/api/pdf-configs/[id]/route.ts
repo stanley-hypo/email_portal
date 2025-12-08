@@ -23,18 +23,23 @@ async function writePdfConfigs(configs: PdfConfig[]): Promise<void> {
 
 import { auth } from "@/lib/auth";
 
-// ... (keep existing imports)
-
-// Remove verifyAuth function
+async function requireAdminSession() {
+  const session = await auth();
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  if (!session.user?.isAdmin) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+  return session;
+}
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authResult = await requireAdminSession();
+  if (authResult instanceof NextResponse) return authResult;
 
   try {
     const body = await request.json();
@@ -72,10 +77,8 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authResult = await requireAdminSession();
+  if (authResult instanceof NextResponse) return authResult;
 
   try {
     const configs = await readPdfConfigs();
