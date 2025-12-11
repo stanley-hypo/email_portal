@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { Buffer } from 'buffer';
 import { PdfConfig } from '@/types/smtp';
 import { logUsageEvent } from '@/utils/usageLogger';
 import { timingSafeEqual } from 'crypto';
@@ -191,7 +192,7 @@ export async function POST(request: NextRequest) {
       ...options
     };
 
-    const pdfBuffer = await page.pdf(pdfOptions);
+    const pdfBuffer = Buffer.from(await page.pdf(pdfOptions));
     await browser.close();
     
     console.log('PDF generated successfully, size:', pdfBuffer.length);
