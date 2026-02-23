@@ -78,6 +78,26 @@ function displayStatus(log: UsageLog) {
   return log.eventType;
 }
 
+const ERROR_EVENT_TYPES = ['email_failed', 'email_bounced'];
+
+function eventBadgeColor(eventType: string): string {
+  if (eventType === 'email_failed') return 'red';
+  if (eventType === 'email_bounced') return 'orange';
+  if (eventType === 'email_delivered') return 'green';
+  if (eventType === 'email_opened') return 'teal';
+  return 'blue';
+}
+
+function extractError(log: UsageLog): string | null {
+  if (!log.metadata) return null;
+  const err = log.metadata.error ?? log.metadata.errorMessage ?? log.metadata.reason;
+  return typeof err === 'string' ? err : null;
+}
+
+function isErrorEvent(log: UsageLog): boolean {
+  return ERROR_EVENT_TYPES.includes(log.eventType);
+}
+
 export default function LogsPage() {
   const [recordId, setRecordId] = useState('');
   const [recordType, setRecordType] = useState<RecordType | ''>('');
@@ -399,29 +419,41 @@ export default function LogsPage() {
                   <Table.Th>Actor</Table.Th>
                   <Table.Th>Recipient</Table.Th>
                   <Table.Th>Status</Table.Th>
+                  <Table.Th>Error / Details</Table.Th>
                   <Table.Th>Source</Table.Th>
                   <Table.Th>Created At</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
-                {logs.map((log) => (
-                  <Table.Tr key={log.id}>
-                    <Table.Td>
-                      <Group gap="xs">
-                        <Badge variant="light">{log.eventType}</Badge>
-                        <Badge color="gray" variant="light">
-                          {log.recordType}
-                        </Badge>
-                      </Group>
-                    </Table.Td>
-                    <Table.Td>{log.recordId}</Table.Td>
-                    <Table.Td>{log.actorEmail || log.actorId || '-'}</Table.Td>
-                    <Table.Td>{log.recipientEmail || '-'}</Table.Td>
-                    <Table.Td>{displayStatus(log)}</Table.Td>
-                    <Table.Td>{log.source || '-'}</Table.Td>
-                    <Table.Td>{formatDate(log.createdAt)}</Table.Td>
-                  </Table.Tr>
-                ))}
+                {logs.map((log) => {
+                  const errorMsg = extractError(log);
+                  const hasError = isErrorEvent(log);
+                  return (
+                    <Table.Tr key={log.id} style={hasError ? { backgroundColor: 'var(--mantine-color-red-0)' } : undefined}>
+                      <Table.Td>
+                        <Group gap="xs">
+                          <Badge variant="light" color={eventBadgeColor(log.eventType)}>{log.eventType}</Badge>
+                          <Badge color="gray" variant="light">
+                            {log.recordType}
+                          </Badge>
+                        </Group>
+                      </Table.Td>
+                      <Table.Td>{log.recordId}</Table.Td>
+                      <Table.Td>{log.actorEmail || log.actorId || '-'}</Table.Td>
+                      <Table.Td>{log.recipientEmail || '-'}</Table.Td>
+                      <Table.Td>{displayStatus(log)}</Table.Td>
+                      <Table.Td>
+                        {errorMsg ? (
+                          <Text size="xs" c="red" lineClamp={2} title={errorMsg}>
+                            {errorMsg}
+                          </Text>
+                        ) : '-'}
+                      </Table.Td>
+                      <Table.Td>{log.source || '-'}</Table.Td>
+                      <Table.Td>{formatDate(log.createdAt)}</Table.Td>
+                    </Table.Tr>
+                  );
+                })}
               </Table.Tbody>
             </Table>
           </Card>
